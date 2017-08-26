@@ -10,56 +10,57 @@ public class Jugador {
     private int vida;
     private int cargaAtaque;
     private int cargaDefensa;
+    private int cargaMaximaAtaque;
+    private int cargaMaximaDefensa;
 
-    public Jugador(String nombre, int vida, int cargaAtaque, int cargaDefensa) {
+    public Jugador(String nombre, int vida, int cargaAtaque, int cargaDefensa, int cargaMaximaAtaque, int cargaMaximaDefensa) {
         this.nombre = nombre;
         this.vida = vida;
         this.cargaAtaque = cargaAtaque;
         this.cargaDefensa = cargaDefensa;
+        this.cargaMaximaAtaque = cargaMaximaAtaque;
+        this.cargaMaximaDefensa = cargaMaximaDefensa;
     }
 
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public int getVida() {
-        return vida;
-    }
-
-    public void setVida(int vida) {
-        this.vida = vida;
-    }
-
-    public int getCargaAtaque() {
-        return cargaAtaque;
-    }
-
-    public void setCargaAtaque(int cargaAtaque) {
-        this.cargaAtaque = cargaAtaque;
-    }
-
-    public int getCargaDefensa() {
-        return cargaDefensa;
-    }
-
-    public void setCargaDefensa(int cargaDefensa) {
-        this.cargaDefensa = cargaDefensa;
-    }
+    
+    
     public void recibirDano(int cantidad){
-        //TODO
+        this.vida-=cantidad;
     }
-    public void gastarCargaAtaque(int cantidad){
-        //TODO
+    
+    /*
+    * 
+    */
+    public boolean gastarCargaAtaque(int cantidad){
+        if(puedeAtacar()){
+            this.cargaAtaque-= cantidad;
+            return true;
+        }
+        return false;
     }
-    public void gastarCargaDefensa(int cantidad){
-        //TODO
+    
+    /*
+    * @param
+    */
+    public boolean gastarCargaDefensa(int cantidad){
+        if(puedeDefenderse()){
+            this.cargaDefensa -= cantidad;
+            return false;
+        }
+        return false;
     }
-    public void recargar(int cantidad){
-        //TODO
+    public boolean recargar(int cantidadAtaque, int cantidadDefensa){
+        if(puedeRecargar()){
+            if(this.cargaAtaque + cantidadAtaque <= this.cargaMaximaAtaque ){
+                this.cargaAtaque += cantidadAtaque;
+            }else{
+                return false;
+            }
+            
+            this.cargaDefensa += cantidadDefensa;
+            return true;
+        }
+        return false;
     }
     public boolean puedeAtacar(){
         //TODO

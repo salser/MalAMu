@@ -39,6 +39,11 @@ public class Jugada {
     public void setTipo(TipoAccion tipo) {
         this.tipo = tipo;
     }
+
+    @Override
+    public String toString() {
+        return "Jugada{" + "jugador=" + jugador + ", objetivo=" + objetivo + ", tipo=" + tipo + '}';
+    }
     
     
 }

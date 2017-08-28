@@ -1,8 +1,9 @@
-package malamu;
+package modelo;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import malamu.Cliente;
 
 /**
  * Clase Partida que modela la lógica que representa una partida de MalAMu, esto es, asignación de turnos e informar a los jugadores del progreso del juego.

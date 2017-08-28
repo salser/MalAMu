@@ -16,7 +16,7 @@ public class Cliente {
     private List<Jugada> jugadas;
     private GUICliente gui;
 
-    public Cliente(InetAddress direccion, Jugador jugador, <any> jugadas, GUICliente gui) {
+    public Cliente(InetAddress direccion, Jugador jugador, List<Jugada> jugadas, GUICliente gui) {
         this.direccion = direccion;
         this.tiempoUltimoMensaje = LocalDate.now();
         this.duracionMaximaInactividad = LocalDate.now();

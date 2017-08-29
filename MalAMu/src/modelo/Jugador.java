@@ -154,5 +154,15 @@ public class Jugador {
         }
         return false;
     }
+
+    public int getVida() {
+        return vida;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+    
+    
     
 }

@@ -27,12 +27,15 @@ public class Partida {
     private List<Cliente> clientes;
     
     
-    /**
-     * Constructor por defecto, no recibe parámetros porque debe comenzar sin clientes, sin turnos jugados con la fecha actual.
-     */
     public Partida() {
         this.fechaInicio = LocalDate.now();
         this.numeroTurno = 0;
         this.clientes = new ArrayList<Cliente>();
     }
+
+    public void agregarCliente(Cliente cliente) {
+        clientes.add(cliente);
+    }
+    
+    
 }

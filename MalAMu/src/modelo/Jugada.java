@@ -30,6 +30,20 @@ public class Jugada {
         this.objetivo = objetivo;
         this.tipo = tipo;
     }
+
+    public Jugador getJugador() {
+        return jugador;
+    }
+
+    public Jugador getObjetivo() {
+        return objetivo;
+    }
+
+    public TipoAccion getTipo() {
+        return tipo;
+    }
+    
+    
     
     /**
      * Convierte una jugada a algo entendible

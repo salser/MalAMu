@@ -1,7 +1,7 @@
 package modelo;
 
 /**
- *
+ * Define los atributos de un jugador, desde su nombre hasta la cantidad máxima de cargas de defensa y ataque que pueda tener
  * @author Henry Salazar, David Villamizar, Juan Espinosa
  */
 public class Jugador {
@@ -35,6 +35,15 @@ public class Jugador {
      */
     private int cargaMaximaDefensa;
 
+    /**
+     * Constructor de un jugador
+     * @param nombre
+     * @param vida
+     * @param cargaAtaque
+     * @param cargaDefensa
+     * @param cargaMaximaAtaque
+     * @param cargaMaximaDefensa 
+     */
     public Jugador(String nombre, int vida, int cargaAtaque, int cargaDefensa, int cargaMaximaAtaque, int cargaMaximaDefensa) {
         this.nombre = nombre;
         this.vida = vida;
@@ -105,23 +114,55 @@ public class Jugador {
         }
         return false;
     }
+    
+    /**
+     * Método que edeternmina si un jugador puede o no puede atacar, 
+     * con la cantidad definida dentro de los atributos
+     * @param cantidad: cantidad que se le envia a a función para saber si puede o no atacar
+     * @return retorna verdadero si puede atacar, de lo coontrario  retorna falso
+     */
     public boolean puedeAtacar(int cantidad){
         if(this.cargaAtaque - cantidad >= 0){
             return true;
         }
         return false;
     }
+    
+    /**
+     * Método que edeternmina si un jugador puede o no 
+     * defenderse, con la cantidad definida dentro de los atributos
+     * @param cantidad: cantidad que se le envia a a función para saber si puede o no defenderse la cantidad que solicita
+     * @return retorna verdadero si puede defenderse, de lo coontrario  retorna falso
+     */
     public boolean puedeDefenderse(int cantidad){
         if(this.cargaDefensa - cantidad >= 0){
             return true;
         }
         return false;
     }
+    
+    /**
+     * Método que deternmina si un jugador puede o no 
+     * recargar, con la cantidad definida dentro de los atributos
+     * @param cantidadAtaque: cantidad de ataque que el jugador quiere recargar
+     * @param cantidadDefensa: cantidad de defensa que el jugador quiere recargar
+     * @return falso si no puede recargar ni defensa i ataque y verdadero si puede recargar al menos una de las dos
+     */
     public boolean puedeRecargar(int cantidadAtaque, int cantidadDefensa){
         if(this.cargaAtaque + cantidadAtaque <= this.cargaMaximaAtaque || this.cargaDefensa + cantidadDefensa <= this.cargaMaximaDefensa){
             return true;
         }
         return false;
     }
+
+    public int getVida() {
+        return vida;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+    
+    
     
 }

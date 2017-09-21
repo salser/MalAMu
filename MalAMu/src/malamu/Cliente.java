@@ -8,7 +8,7 @@ import java.util.List;
 import modelo.Jugada;
 import modelo.Jugador;
 import modelo.Partida;
-import modelo.Servidor;
+import malamu.Servidor;
 
 /**
  * Clase que modela la lógica e información del cliente del juego. 

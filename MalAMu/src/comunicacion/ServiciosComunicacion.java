@@ -60,5 +60,6 @@ public class ServiciosComunicacion {
 		} catch (IOException e) {
 			System.out.println("Listen socket:" + e.getMessage());
 		}
+            return "NO SOCKET!";
 	}
 }

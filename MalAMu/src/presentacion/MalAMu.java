@@ -79,11 +79,29 @@ public class MalAMu {
                     defienden.add(j.getJugador());
                 }
             }
+            for (Jugador jugador : defienden) {
+                System.out.println("-------------------Defienen");
+                System.out.println(jugador.getNombre());
+                System.out.println("-------------------");
+            }
+            boolean flag = false;
             for (Jugada j : jugadas) {
                 if(j.getTipo() == TipoAccion.ATAQUE){
                     for (Jugador def : defienden) {
+                        System.out.println("entróooooooooo");
                         if(def.equals(j.getObjetivo())){
-                            
+                            flag = true;
+                            break;
+                        }else{
+                            flag = false;
+                        }
+                    }
+                }
+                if(!flag){
+                    System.out.println("entró");
+                    for (int k = 0; k<jugadores.size(); k++) {
+                        if(j.getObjetivo().equals(jugadores.get(k))){
+                            jugadores.get(k).recibirDano(1);
                         }
                     }
                 }
@@ -92,6 +110,9 @@ public class MalAMu {
                 if (jugadores.get(i).getVida() <= 0) {
                     seAcabo = true;
                 }
+            }
+            for (Jugador j : jugadores) {
+                System.out.println(j.getNombre()+ " vida " + j.getVida());
             }
         }
     }

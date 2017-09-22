@@ -20,7 +20,6 @@ import java.net.UnknownHostException;
 public class ServiciosComunicacion {
 
     public static final int PUERTO = 7896;
-    private ProducerConsumer pc;
 
     public static void enviarTCP(InetAddress direccion, Object mensaje) {
         Socket s = null;

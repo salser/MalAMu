@@ -7,12 +7,9 @@ package malamu;
 
 import java.net.InetAddress;
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
-import java.util.Scanner;
 import modelo.Jugada;
 import modelo.Jugador;
 import modelo.Partida;
@@ -70,7 +67,6 @@ public class Servidor {
      * Tiene la cola con los clientes que desean unirse a la nueva partida.
      */
     protected List<Cliente> colaClientes = new ArrayList<Cliente>();
-
     /**
      * Constructor de un servidor.
      *

@@ -22,12 +22,12 @@ public class ServiciosComunicacion {
     public static final int PUERTO = 7896;
 
     public static void enviarTCP(InetAddress direccion, Object mensaje) {
-        Socket s = null;
+        Socket socket = null;
         try {
             int serverPort = PUERTO;
-            s = new Socket(direccion, serverPort);
-            //ObjectInputStream in = new ObjectInputStream(s.getInputStream());
-            ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
+            socket = new Socket(direccion, serverPort);
+            //ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             out.writeObject(mensaje);      	// Enviar el socket con un objeto serializado
            // String data = in.readUTF();	    // read a line of data from the stream
            // System.out.println("Received: " + data);
@@ -38,9 +38,9 @@ public class ServiciosComunicacion {
         } catch (IOException e) {
             System.out.println("readline:" + e.getMessage());
         } finally {
-            if (s != null) {
+            if (socket != null) {
                 try {
-                    s.close();
+                    socket.close();
                 } catch (IOException e) {
                     System.out.println("close:" + e.getMessage());
                 }

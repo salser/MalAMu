@@ -46,11 +46,6 @@ public class Cliente {
      * Relación con la clase partida de la cual el cliente forma parte.
      */
     private Partida partida;
-
-    /**
-     * Servidor al cual el cliente se encuentra conectado.
-     */
-    private Servidor servidor;
     
     /**
      * Última decisión tomada por el jugador.

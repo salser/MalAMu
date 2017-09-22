@@ -5,10 +5,9 @@
  */
 package comunicacion;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -21,17 +20,18 @@ import java.net.UnknownHostException;
 public class ServiciosComunicacion {
 
     public static final int PUERTO = 7896;
+    private ProducerConsumer pc;
 
-    public static void enviarTCP(InetAddress direccion, String mensaje) {
+    public static void enviarTCP(InetAddress direccion, Object mensaje) {
         Socket s = null;
         try {
-            int serverPort = 7896;
+            int serverPort = PUERTO;
             s = new Socket(direccion, serverPort);
-            DataInputStream in = new DataInputStream(s.getInputStream());
-            DataOutputStream out = new DataOutputStream(s.getOutputStream());
-            out.writeUTF(mensaje);      	// UTF is a string encoding see Sn. 4.4
-            String data = in.readUTF();	    // read a line of data from the stream
-            System.out.println("Received: " + data);
+            //ObjectInputStream in = new ObjectInputStream(s.getInputStream());
+            ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
+            out.writeObject(mensaje);      	// Enviar el socket con un objeto serializado
+           // String data = in.readUTF();	    // read a line of data from the stream
+           // System.out.println("Received: " + data);
         } catch (UnknownHostException e) {
             System.out.println("Socket:" + e.getMessage());
         } catch (EOFException e) {
@@ -49,13 +49,14 @@ public class ServiciosComunicacion {
         }
     }
 
-    public static String recibirTCP(InetAddress filtro) {
+    public static Object recibirTCP(InetAddress filtro) {
         try {
-            int serverPort = 7896; // the server port
+            int serverPort = PUERTO; // the server port
             ServerSocket listenSocket = new ServerSocket(serverPort);
             while (true) {
                 Socket clientSocket = listenSocket.accept();
                 Connection c = new Connection(clientSocket);
+               
             }
         } catch (IOException e) {
             System.out.println("Listen socket:" + e.getMessage());

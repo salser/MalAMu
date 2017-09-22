@@ -3,12 +3,12 @@ package malamu;
 import java.net.InetAddress;
 import java.time.Duration;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import modelo.Jugada;
 import modelo.Jugador;
 import modelo.Partida;
 import malamu.Servidor;
+import modelo.Ronda;
 
 /**
  * Clase que modela la lógica e información del cliente del juego. 
@@ -35,11 +35,6 @@ public class Cliente {
     private Jugador jugador;
     
     /**
-     * Lista de jugadas que el jugador ha hecho.
-     */
-    private List<Jugada> jugadas;
-    
-    /**
      * Interfaz gráfica de usuario del cliente.
      */
     private GUICliente gui;
@@ -54,13 +49,21 @@ public class Cliente {
      */
     private Servidor servidor;
     
+    /**
+     * Última decisión tomada por el jugador.
+     */
+    private Jugada ultimaJugada;
+    
+    /**
+     *  Registro de la información de la última ronda.
+     */
+    private Ronda ultimaRonda;
     
     public Cliente(InetAddress direccion, Jugador jugador, List<Jugada> jugadas, GUICliente gui) {
         this.direccion = direccion;
         this.tiempoUltimoMensaje = LocalDate.now();
         
         this.jugador = jugador;
-        this.jugadas = new ArrayList<Jugada>();
         this.gui = gui;
     }
     

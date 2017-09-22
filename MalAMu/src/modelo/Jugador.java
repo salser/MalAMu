@@ -130,7 +130,7 @@ public class Jugador {
      *
      * @return verdadero si puede atacar y falso si no lo puede hacer
      */
-    public boolean gastarAtaque() {
+    public boolean gastarCargaAtaque() {
         if (puedeAtacar()) {
             this.cargaAtaque = Math.max(this.cargaAtaque - this.costoAtaque, 0);
             return true;
@@ -145,7 +145,7 @@ public class Jugador {
      *
      * @return verdadero si puede defenderse y falso si no lo puede hacer
      */
-    public boolean gastarDefensa() {
+    public boolean gastarCargaDefensa() {
         if (puedeDefenderse()) {
             this.cargaDefensa = Math.max(this.cargaDefensa - this.costoDefensa, 0);
             return true;

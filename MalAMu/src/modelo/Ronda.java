@@ -18,6 +18,10 @@ public class Ronda {
     public Ronda(List<Jugada> jugadas) {
         this.jugadas = jugadas;
     }
+
+    public List<Jugada> getJugadas() {
+        return jugadas;
+    }
     
     
 }

@@ -84,6 +84,11 @@ public class Servidor {
         this.duracionMaximaEmparejamiento = duracionMaximaEmparejamiento;
     }
 
+    /**
+     * Ejecuta toda la ronda del juego, hace los respectivos movimientos de recarga, defensa y ataque, en ese orden
+     * @param ronda que contiene las jugadas de dicha ronda 
+     * @param jugadores la lista de los jugadores del juego a los que recaen las jugadas
+     */
     public void ejecutarRonda(Ronda ronda, List<Jugador> jugadores) {
         
         List<Jugada> jugadas = ronda.getJugadas();
@@ -121,26 +126,122 @@ public class Servidor {
     }
 
     public void iniciarPartida() {
-        
+        //TODO
     }
 
     public void recibirJugadas() {
-
+        //TODO
     }
 
     public void enviarResultados() {
-
+        //TODO
     }
 
     public void matarDormidos() {
-
+        //TODO
     }
 
     public void recibirJugadores() {
-
+        //TODO
     }
 
     public boolean pedirConfirmacion(Cliente c) {
+        //TODO
         return true;
     }
+    
+    /**
+     * Envia una notificación diciendo que perdio y fue sacado del juego
+     * @param perdedores Lista de los perdedores a los cual se va a notificar
+     */
+    private void enviarNotificacionPerdio(List<Jugador> perdedores) {
+        //TODO
+    }
+    
+    /**
+     * Notifica enviando al cliente ganador diciendo que fue el ganador de la partida
+     * @param ganador el jugador ganador de la partida
+     */
+    private void notificarGanador(Jugador ganador) {
+        //TODO
+    }
+
+    /**
+     * Notifica enviando a los clientes ganadores diciendo que fueron los ganadores de la partida
+     * @param jugadores Lista de los jugadores ganadores
+     */
+    private void notificarGanadores(List<Jugador> jugadores) {
+        //TODO
+    }
+    
+    /**
+     * El cliente designado lo coloca en la cola de espera del nuevo juego
+     * @param c Es el cliente que se encola en el servidor del juego
+     */
+    private void encolarJugador(Cliente c){
+        //TODO
+    }
+    
+    /**
+     * Acaba El juego por completo y libera todos los recursos para volver a empezar
+     */
+    private void acabarJuego() {
+        //TODO
+    }
+    /**
+     * Envía el estado nuevo del juego luego de una Ronda
+     * @param jugadores Lista de los jugadores que estan jugando
+     */
+    private void enviarEstadoJuego(List<Jugador> jugadores){
+        //TODO
+    }
+    
+    /**
+     * Saca los jugadores que ya estan muertos de la lista de jugadores, estan muuertos si su vida en menor iguala cero
+     * @param jugadores Jugadores que actualmente estan en el juego y que se quieren revisar
+     * @return retorna la lista con solo los jugadores que están vivios
+     */
+    public List<Jugador> sacarMuertos(List<Jugador> jugadores){
+        List<Jugador> perdedores = new ArrayList<Jugador>();
+        for (Jugador j : jugadores) {
+            if(j.getVida() <= 0){
+                perdedores.add(j);
+                jugadores.remove(j);
+            }
+        }
+        enviarNotificacionPerdio(perdedores);
+        return jugadores;
+    }
+
+    /**
+     * Define si el juego terminó, definomos que se acaba, sí queda un solo jugador,
+     * o si todoslos jugadores quedan sin vida, de esta manera todos los jugadores ganan la partida
+     * @param jugadores actualmente en el juego
+     * @return falso si el juego aun sigue, de lo contrario si el juego terminó retorna true
+     */
+    private boolean juegoAcabo(List<Jugador> jugadores){
+        List<Jugador> auxiliares = jugadores;
+        List<Jugador> perdedores = new ArrayList<Jugador>();
+        for (Jugador j : auxiliares) {
+             if(j.getVida() <= 0){
+                perdedores.add(j);
+                jugadores.remove(j);
+            }
+        }
+        if(auxiliares.size() == 1){
+            enviarNotificacionPerdio(perdedores);
+            Jugador ganador = jugadores.get(0);
+            notificarGanador(ganador);
+            acabarJuego();
+            return true;
+        }else if(auxiliares.size() == 0){
+            notificarGanadores(jugadores);
+            acabarJuego();
+            return true;
+        }
+        return false;
+    }
+
+
+    
 }

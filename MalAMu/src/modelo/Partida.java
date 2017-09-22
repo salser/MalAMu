@@ -26,11 +26,16 @@ public class Partida {
      */
     private List<Cliente> clientes;
     
+    /**
+     * Registro de todas las jugadas hechas.
+     */
+    private List<Ronda> rondas;
     
     public Partida() {
         this.fechaInicio = LocalDate.now();
         this.numeroTurno = 0;
         this.clientes = new ArrayList<Cliente>();
+        this.rondas = new ArrayList<Ronda>();
     }
 
     public void agregarCliente(Cliente cliente) {

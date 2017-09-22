@@ -23,16 +23,20 @@ public class MalAMu {
      */
     public static void main(String[] args) {
         List<Jugador> jugadores = new ArrayList();
-        Jugador j1 = new Jugador("Henry", 3, 1, 2, 3, 3);
-        Jugador j2 = new Jugador("David", 3, 1, 2, 3, 3);
-        Jugador j3 = new Jugador("Juan", 3, 1, 2, 3, 3);
+        Jugador j1 = new Jugador("Henry");
+        Jugador j2 = new Jugador("David");
+        Jugador j3 = new Jugador("Juan");
+
         jugadores.add(j1);
         jugadores.add(j2);
         jugadores.add(j3);
+
         boolean seAcabo = false;
         while (!seAcabo) {
+            // Inicio ronda
             List<Jugada> jugadas = new ArrayList();
             Scanner in = new Scanner(System.in);
+            // Receibir jugadas
             for (int i = 0; i < jugadores.size(); i++) {
                 System.out.println("Turno de " + jugadores.get(i).getNombre());
                 System.out.println("Indique 1 para atacar 2 para defender 3 para cargar");
@@ -41,78 +45,77 @@ public class MalAMu {
                     case 1:
                         System.out.println("hacia que jugador desea atacar");
                         for (int j = 0; j < jugadores.size(); j++) {
-                            System.out.println(j + ". " + jugadores.get(j).getNombre() + ".");
+                            System.out.println((j+1) + ". " + jugadores.get(j).getNombre() + ".");
                         }
-                        int posJ = in.nextInt();
-                        if (jugadores.get(i).puedeAtacar(1)) {
-                            jugadas.add(new Jugada(jugadores.get(i), j3, TipoAccion.ATAQUE));
+                        int indObjetivo = in.nextInt() - 1;
+                        if (jugadores.get(i).puedeAtacar()) {
+                            jugadas.add(new Jugada(jugadores.get(i), jugadores.get(indObjetivo), TipoAccion.ATAQUE));
                         }
                         break;
                     case 2:
-                        if (jugadores.get(i).puedeDefenderse(1)) {
-                            jugadas.add(new Jugada(jugadores.get(i), j3, TipoAccion.DEFENSA));
+                        if (jugadores.get(i).puedeDefenderse()) {
+                            jugadas.add(new Jugada(jugadores.get(i), null, TipoAccion.DEFENSA));
                         }
                         break;
                     case 3:
-                        if (jugadores.get(i).puedeRecargar(1, 1)) {
-                            jugadas.add(new Jugada(jugadores.get(i), j3, TipoAccion.RECARGA));
+                        if (jugadores.get(i).puedeRecargar()) {
+                            jugadas.add(new Jugada(jugadores.get(i), null, TipoAccion.RECARGA));
                         }
                         break;
                     default:
                         System.out.println("Turno de " + jugadores.get(i).getNombre() + " otravez por que no dio donde era!");
-                        System.out.println("Indique 1 para atacar 2 para defender 3 para cargar");
-                        jugada = in.nextInt();
                         i--;
                         break;
 
                 }
             }
-            for (Jugada j : jugadas) {
-                if(j.getTipo() == TipoAccion.RECARGA){
-                    Jugador ju = j.getJugador();
-                    ju.recargar(1, 2);
+            
+            // Ejecutar jugadas de recarga
+            for (Jugada jugada : jugadas) {
+                if (jugada.getTipo() == TipoAccion.RECARGA) {
+                    Jugador jugador = jugada.getJugador();
+                    jugador.recargar();
                 }
             }
+            
+            // Ejecutar jugadas de defensa
             List<Jugador> defienden = new ArrayList<>();
-            for (Jugada j : jugadas) {
-                if(j.getTipo() == TipoAccion.DEFENSA){
-                    defienden.add(j.getJugador());
+            for (Jugada jugada : jugadas) {
+                if (jugada.getTipo() == TipoAccion.DEFENSA) {
+                    defienden.add(jugada.getJugador());
                 }
             }
+            
+            // Imprimir jugadores que se defendieron
+            System.out.println("-------------------");
+            System.out.println("   Se defienden");
+            System.out.println("-------------------");
             for (Jugador jugador : defienden) {
-                System.out.println("-------------------Defienen");
                 System.out.println(jugador.getNombre());
-                System.out.println("-------------------");
             }
-            boolean flag = false;
-            for (Jugada j : jugadas) {
-                if(j.getTipo() == TipoAccion.ATAQUE){
-                    for (Jugador def : defienden) {
-                        System.out.println("entróooooooooo");
-                        if(def.equals(j.getObjetivo())){
-                            flag = true;
-                            break;
-                        }else{
-                            flag = false;
-                        }
-                    }
-                }
-                if(!flag){
-                    System.out.println("entró");
-                    for (int k = 0; k<jugadores.size(); k++) {
-                        if(j.getObjetivo().equals(jugadores.get(k))){
-                            jugadores.get(k).recibirDano(1);
-                        }
+            System.out.println("-------------------");
+            
+            // Ejecutar jugadas de ataque
+            for (Jugada jugada : jugadas) {
+                if (jugada.getTipo() == TipoAccion.ATAQUE) {
+                    if (!defienden.contains(jugada.getObjetivo())) {
+                        // Si el objetivo no se esta defendiendo
+                        // Hacer daño
+                        jugada.getObjetivo().recibirDano(jugada.getJugador().getDanoAtaque());
                     }
                 }
             }
+            
+            // Terminar juego si hay muertos
             for (int i = 0; i < jugadores.size(); i++) {
                 if (jugadores.get(i).getVida() <= 0) {
                     seAcabo = true;
                 }
             }
-            for (Jugador j : jugadores) {
-                System.out.println(j.getNombre()+ " vida " + j.getVida());
+            
+            // Imprimir nuevo estado de los jugadores
+            for (Jugador jugador : jugadores) {
+                System.out.println(jugador.getNombre() + " vida: " + jugador.getVida());
             }
         }
     }

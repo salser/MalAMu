@@ -10,5 +10,5 @@ package malamu;
  * @author davl3232
  */
 class GUICliente {
-	
+
 }

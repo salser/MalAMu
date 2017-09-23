@@ -4,6 +4,7 @@ import java.net.InetAddress;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 import modelo.Jugada;
 import modelo.Jugador;
 import modelo.Partida;
@@ -57,6 +58,10 @@ public class Cliente {
      */
     private Ronda ultimaRonda;
     
+    /**
+     * Código único que le otorga el servidor a cada cliente.
+     */
+    private String codigoAcceso;
 
     /**
      * Constructor de un cliente.
@@ -72,6 +77,7 @@ public class Cliente {
 
         this.jugador = jugador;
         this.gui = gui;
+        this.codigoAcceso = UUID.randomUUID().toString();
     }
 
     /**
@@ -106,4 +112,17 @@ public class Cliente {
 
     }
 
+    public Jugador getJugador() {
+        return jugador;
+    }
+
+    public Ronda getUltimaRonda() {
+        return ultimaRonda;
+    }
+
+    public InetAddress getDireccion() {
+        return direccion;
+    }
+
+    
 }

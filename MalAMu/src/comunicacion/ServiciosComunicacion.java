@@ -1,37 +1,36 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package comunicacion;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import malamu.Cliente;
+import malamu.Servidor;
 
-/**
- *
- * @author davl3232
- */
 public class ServiciosComunicacion {
 
     public static final int PUERTO = 7896;
-
-    public static void enviarTCP(InetAddress direccion, String mensaje) {
+    public static final long TIEMPO_MS_ESPERA_MAX = 1000;
+    
+    public static void enviarTCP(InetAddress direccion, Object mensaje) {
         Socket s = null;
         try {
-            int serverPort = 7896;
+            int serverPort = PUERTO;
             s = new Socket(direccion, serverPort);
-            DataInputStream in = new DataInputStream(s.getInputStream());
-            DataOutputStream out = new DataOutputStream(s.getOutputStream());
-            out.writeUTF(mensaje);      	// UTF is a string encoding see Sn. 4.4
-            String data = in.readUTF();	    // read a line of data from the stream
-            System.out.println("Received: " + data);
+            ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
+            out.writeObject(mensaje);
+           System.out.println("Received: " + mensaje);
         } catch (UnknownHostException e) {
             System.out.println("Socket:" + e.getMessage());
         } catch (EOFException e) {
@@ -49,17 +48,25 @@ public class ServiciosComunicacion {
         }
     }
 
-    public static String recibirTCP(InetAddress filtro) {
+    public static Object recibirTCP(InetAddress direccion) {
+        Object resultado = new Object();
+        ExecutorService es = Executors.newSingleThreadExecutor();
+        es.submit(new Connection(direccion, PUERTO, resultado));
         try {
-            int serverPort = 7896; // the server port
-            ServerSocket listenSocket = new ServerSocket(serverPort);
-            while (true) {
-                Socket clientSocket = listenSocket.accept();
-                Connection c = new Connection(clientSocket);
-            }
-        } catch (IOException e) {
-            System.out.println("Listen socket:" + e.getMessage());
+            es.awaitTermination(TIEMPO_MS_ESPERA_MAX, TimeUnit.MILLISECONDS);
+            return resultado;
+        } catch (InterruptedException e) {
+            System.out.println(e.getMessage());
+            return null;
         }
-        return "NO SOCKET!";
+    }
+    
+    public static List<Object> recibirTCP(List<Cliente> clientes) {
+        List<Object> recibidos = new ArrayList<>();
+        for (int i = 0; i < clientes.size(); ++i) {
+            ExecutorService es = Executors.newFixedThreadPool(clientes.size());
+            es.submit(new Connection(clientes.get(i).getDireccion(), PUERTO, recibidos, i));
+        }
+        return recibidos;
     }
 }

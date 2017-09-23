@@ -1,30 +1,46 @@
+
 package comunicacion;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.*;
+import java.util.Date;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import malamu.Cliente;
 
-/**
- * Clase que maneja la conexión en java usando un thread independiente.
- */
 class Connection extends Thread {
 
-    DataInputStream in;
-    DataOutputStream out;
-    Socket clientSocket;
+    ObjectInputStream in;
+    Socket conSocket;
+    ServerSocket serverSocket;
+    
+    Object recibido;
+    List<Object> recibidos;
+    int pos;
 
-    /**
-     * Constructor de una conección via socket.
-     *
-     * @param aClientSocket
-     */
-    public Connection(Socket aClientSocket) {
+    Connection(InetAddress direccion, int puerto, List<Object> recibidos, int pos) {
         try {
-            clientSocket = aClientSocket;
-            in = new DataInputStream(clientSocket.getInputStream());
-            out = new DataOutputStream(clientSocket.getOutputStream());
+            this.recibidos = recibidos;
+            this.pos = pos;
+            serverSocket = new ServerSocket(puerto, 1, direccion);
+            conSocket = serverSocket.accept();
+            in = new ObjectInputStream(conSocket.getInputStream());
+            this.start();
+        } catch (IOException e) {
+            System.out.println("Connection:" + e.getMessage());
+        }
+    }
+
+    Connection(InetAddress direccion, int puerto, Object recibido) {
+        try {
+            this.recibido = recibido;
+            serverSocket = new ServerSocket(puerto, 1, direccion);
+            conSocket = serverSocket.accept();
+            in = new ObjectInputStream(conSocket.getInputStream());
             this.start();
         } catch (IOException e) {
             System.out.println("Connection:" + e.getMessage());
@@ -32,20 +48,24 @@ class Connection extends Thread {
     }
 
     public void run() {
-        try {			                 // an echo server
-
-            String data = in.readUTF();	                  // read a line of data from the stream
-            out.writeUTF(data);
+        try {
+            if (recibido == null) {
+                recibidos.set(pos, (Object)in.readObject());
+            } else {
+                recibido = (Object)in.readObject();
+            }
         } catch (EOFException e) {
             System.out.println("EOF:" + e.getMessage());
         } catch (IOException e) {
             System.out.println("readline:" + e.getMessage());
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(Connection.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             try {
-                clientSocket.close();
+                conSocket.close();
+                serverSocket.close();
             } catch (IOException e) {/*close failed*/
             }
         }
-
     }
 }

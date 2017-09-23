@@ -5,11 +5,17 @@
  */
 package malamu;
 
+import comunicacion.ServiciosComunicacion;
 import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import modelo.Jugada;
 import modelo.Jugador;
 import modelo.Partida;
@@ -24,11 +30,13 @@ import modelo.TipoAccion;
  * @author davl3232
  */
 public class Servidor {
-
+    
     /**
      * Dirección IP del servidor.
      */
     protected InetAddress direccion;
+    
+    protected int numJugadoresMax;
 
     /**
      * Tiempo de inactividad tomado desde la recepción del último mensaje desde
@@ -59,6 +67,11 @@ public class Servidor {
     protected Partida partida;
     
     /**
+     * Tiene las conexiones actuales.
+     */
+    protected List<Socket> sockets = new ArrayList<>();
+    
+    /**
      * Lista de los clientes que se encuentran en la partida.
      */
     protected List<Cliente> clientes = new ArrayList<Cliente>();
@@ -71,17 +84,33 @@ public class Servidor {
      * Constructor de un servidor.
      *
      * @param direccion
+     * @param numJugadoresMax
      * @param tiempoInicioInactividad
      * @param duracionMaximaInactividad
      * @param tiempoInicioEmparejamiento
      * @param duracionMaximaEmparejamiento
      */
-    public Servidor(InetAddress direccion, LocalDateTime tiempoInicioInactividad, Duration duracionMaximaInactividad, LocalDateTime tiempoInicioEmparejamiento, Duration duracionMaximaEmparejamiento) {
+    public Servidor(InetAddress direccion, int numJugadoresMax, LocalDateTime tiempoInicioInactividad, Duration duracionMaximaInactividad, LocalDateTime tiempoInicioEmparejamiento, Duration duracionMaximaEmparejamiento) {
         this.direccion = direccion;
+        this.numJugadoresMax = numJugadoresMax;
         this.tiempoInicioInactividad = tiempoInicioInactividad;
         this.duracionMaximaInactividad = duracionMaximaInactividad;
         this.tiempoInicioEmparejamiento = tiempoInicioEmparejamiento;
         this.duracionMaximaEmparejamiento = duracionMaximaEmparejamiento;
+    }
+    
+    public static void main(String [ ] args) {
+        Servidor servidor;
+        try {
+            servidor = new Servidor(InetAddress.getByName("127.0.0.1"), 12, null, Duration.ofMillis(1000), null, Duration.ofMillis(0));
+            
+            for (int i = 0; i < 12; i++) {
+                servidor.colaClientes.add(new Cliente(InetAddress.getLocalHost(), new Jugador("Jugador " + i)));
+            }
+            servidor.iniciarPartida();
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     /**
@@ -126,7 +155,13 @@ public class Servidor {
     }
 
     public void iniciarPartida() {
-        //TODO
+        clientes = colaClientes.subList(colaClientes.size() - 12, colaClientes.size());
+        colaClientes = colaClientes.subList(0, colaClientes.size() - 12);
+        List<InetAddress> direccionesDst = new ArrayList<>();
+        for (int i = 0; i < clientes.size(); i++) {
+            direccionesDst.add(clientes.get(i).getDireccion());
+        }
+        sockets = ServiciosComunicacion.abrirSockets(direccionesDst);
     }
 
     public void recibirJugadas() {
@@ -240,8 +275,5 @@ public class Servidor {
             return true;
         }
         return false;
-    }
-
-
-    
+    }    
 }

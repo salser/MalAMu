@@ -39,16 +39,6 @@ public class Cliente {
     private Jugador jugador;
 
     /**
-     * Interfaz gráfica de usuario del cliente.
-     */
-    private GUICliente gui;
-
-    /**
-     * Relación con la clase partida de la cual el cliente forma parte.
-     */
-    private Partida partida;
-    
-    /**
      * Última decisión tomada por el jugador.
      */
     private Jugada ultimaJugada;
@@ -71,14 +61,16 @@ public class Cliente {
      * @param jugadas
      * @param gui
      */
-    public Cliente(InetAddress direccion, Jugador jugador, List<Jugada> jugadas, GUICliente gui) {
+    public Cliente(InetAddress direccion, Jugador jugador) {
         this.direccion = direccion;
-        this.tiempoUltimoMensaje = LocalDate.now();
-
+        this.tiempoUltimoMensaje = null;
+        this.duracionMaximaInactividad = Duration.ofMillis(1000);
         this.jugador = jugador;
-        this.gui = gui;
-        this.codigoAcceso = UUID.randomUUID().toString();
+        this.ultimaJugada = null;
+        this.ultimaRonda = null;
+        this.codigoAcceso = null;
     }
+    
 
     /**
      * Método que se invoca para unirse a partida.

@@ -15,32 +15,26 @@ import malamu.Cliente;
 class Connection extends Thread {
 
     ObjectInputStream in;
-    Socket conSocket;
-    ServerSocket serverSocket;
     
     Object recibido;
     List<Object> recibidos;
     int pos;
 
-    Connection(InetAddress direccion, int puerto, List<Object> recibidos, int pos) {
+    Connection(Socket socket, int puerto, List<Object> recibidos, int pos) {
         try {
             this.recibidos = recibidos;
             this.pos = pos;
-            serverSocket = new ServerSocket(puerto, 1, direccion);
-            conSocket = serverSocket.accept();
-            in = new ObjectInputStream(conSocket.getInputStream());
+            in = new ObjectInputStream(socket.getInputStream());
             this.start();
         } catch (IOException e) {
             System.out.println("Connection:" + e.getMessage());
         }
     }
 
-    Connection(InetAddress direccion, int puerto, Object recibido) {
+    Connection(Socket socket, int puerto, Object recibido) {
         try {
             this.recibido = recibido;
-            serverSocket = new ServerSocket(puerto, 1, direccion);
-            conSocket = serverSocket.accept();
-            in = new ObjectInputStream(conSocket.getInputStream());
+            in = new ObjectInputStream(socket.getInputStream());
             this.start();
         } catch (IOException e) {
             System.out.println("Connection:" + e.getMessage());
@@ -60,12 +54,6 @@ class Connection extends Thread {
             System.out.println("readline:" + e.getMessage());
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(Connection.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                conSocket.close();
-                serverSocket.close();
-            } catch (IOException e) {/*close failed*/
-            }
         }
     }
 }

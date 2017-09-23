@@ -38,9 +38,9 @@ public class ServiciosComunicacion {
         } catch (IOException e) {
             System.out.println("readline:" + e.getMessage());
         } finally {
-            if (socket != null) {
+            if (s != null) {
                 try {
-                    socket.close();
+                    s.close();
                 } catch (IOException e) {
                     System.out.println("close:" + e.getMessage());
                 }

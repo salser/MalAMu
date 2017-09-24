@@ -14,6 +14,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import modelo.Jugada;
@@ -37,6 +38,8 @@ public class Servidor {
     protected InetAddress direccion;
     
     protected int numJugadoresMax;
+    
+    protected int numJugadoresMin;
 
     /**
      * Tiempo de inactividad tomado desde la recepción del último mensaje desde
@@ -79,7 +82,7 @@ public class Servidor {
     /**
      * Tiene la cola con los clientes que desean unirse a la nueva partida.
      */
-    protected List<Cliente> colaClientes = new ArrayList<Cliente>();
+    protected ConcurrentLinkedQueue<Cliente> colaClientes = new ConcurrentLinkedQueue<>();
     /**
      * Constructor de un servidor.
      *
@@ -155,13 +158,26 @@ public class Servidor {
     }
 
     public void iniciarPartida() {
-        clientes = colaClientes.subList(colaClientes.size() - 12, colaClientes.size());
-        colaClientes = colaClientes.subList(0, colaClientes.size() - 12);
+        clientes = new ArrayList<>();
+        for (int i = 0; i < numJugadoresMax; ++i) {
+            Cliente c = colaClientes.poll();
+            if (c == null) {
+                if (i >= numJugadoresMin) {
+                    break;
+                } else {
+                    i--;
+                }
+            } else {
+                clientes.add(c);
+            }
+        }
         List<InetAddress> direccionesDst = new ArrayList<>();
         for (int i = 0; i < clientes.size(); i++) {
             direccionesDst.add(clientes.get(i).getDireccion());
         }
         sockets = ServiciosComunicacion.abrirSockets(direccionesDst);
+        //clientes = ServiciosComunicacion.recibirTCP(sockets);
+        
     }
 
     public void recibirJugadas() {

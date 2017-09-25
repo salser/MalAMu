@@ -5,23 +5,32 @@
  */
 package modelo;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  *
- * Clase que modela una ronda, es decir, la jugada de cada jugador del juego decidió en un determinado momento.
+ * Clase que modela una ronda, es decir, la jugada de cada jugador del juego
+ * decidió en un determinado momento.
+ *
  * @author Espinosa, Salazar y Villamizar
  */
-public class Ronda {
-    List<Jugada> jugadas;
+public class Ronda implements Serializable {
 
-    public Ronda(List<Jugada> jugadas) {
-        this.jugadas = jugadas;
-    }
+	List<Jugada> jugadas;
 
-    public List<Jugada> getJugadas() {
-        return jugadas;
-    }
-    
-    
+	public Ronda() {
+		this.jugadas = new ArrayList<>();
+	}
+
+	public List<Jugada> getJugadas() {
+		return jugadas;
+	}
+
+	public void setJugadas(List<Jugada> jugadas) {
+		this.jugadas = jugadas;
+	}
+
+	
 }

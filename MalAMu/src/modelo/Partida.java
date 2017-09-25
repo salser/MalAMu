@@ -1,48 +1,68 @@
 package modelo;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import malamu.Cliente;
 
 /**
- * Clase Partida que modela la lógica que representa una partida de MalAMu, esto
- * es, asignación de turnos e informar a los jugadores del progreso del juego.
+ * Representa una partida en del juego. Guarda información sobre tiempo de
+ * inicio, las rondas jugadas hasta ahora y los clientes que están en juego
+ * actualmente.
  *
  * @author Juan Espinosa, Henry Salazar, David Villamizar
  */
-public class Partida {
+public class Partida implements Serializable {
 
-    /**
-     * Valor de tipo LocalDate que representa la fecha en la que se inició la
-     * partida de MalAMu.
-     */
-    private LocalDate fechaInicio;
+	/**
+	 * La fecha en que se inició el emparejamiento para esta partida.
+	 */
+	private LocalDate fechaInicioEmparejamiento;
+	
+	/**
+	 * La fecha en que se inició la partida.
+	 */
+	private LocalDate fechaInicio;
 
-    /**
-     * Número de turnos jugados en la partida.
-     */
-    private int numeroTurno;
+	/**
+	 * Lista de clientes que están conectados en la partida.
+	 */
+	private List<Cliente> clientes;
 
-    /**
-     * Lista de clientes que están conectados en la partida.
-     */
-    private List<Cliente> clientes;
-    
-    /**
-     * Registro de todas las jugadas hechas.
-     */
-    private List<Ronda> rondas;
-    
-    public Partida() {
-        this.fechaInicio = LocalDate.now();
-        this.numeroTurno = 0;
-        this.clientes = new ArrayList<Cliente>();
-        this.rondas = new ArrayList<Ronda>();
-    }
+	/**
+	 * Registro de todas las rondas jugadas hasta el momento.
+	 */
+	private List<Ronda> rondas;
 
-    public void agregarCliente(Cliente cliente) {
-        clientes.add(cliente);
-    }
+	/**
+	 * Crea una nueva partida con
+	 */
+	public Partida() {
+		this.fechaInicio = LocalDate.now();
+		this.fechaInicioEmparejamiento = LocalDate.now();
+		this.clientes = new ArrayList<Cliente>();
+		this.rondas = new ArrayList<Ronda>();
+	}
 
+	public void setFechaInicioEmparejamiento(LocalDate fechaInicioEmparejamiento) {
+		this.fechaInicioEmparejamiento = fechaInicioEmparejamiento;
+	}
+	
+	public List<Cliente> getClientes() {
+		return clientes;
+	}
+
+	public List<Ronda> getRondas() {
+		return rondas;
+	}
+
+	public List<Jugador> getJugadores() {
+		List<Jugador> jugadores = new ArrayList<>();
+		for (int i = 0; i < clientes.size(); i++) {
+			jugadores.add(clientes.get(i).getJugador());
+		}
+		
+		return jugadores;
+	}
 }

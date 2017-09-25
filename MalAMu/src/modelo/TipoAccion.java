@@ -1,5 +1,7 @@
 package modelo;
 
+import java.io.Serializable;
+
 /**
  * Enumeración que indica el tipo de jugada en un turno que un jugador hace:
  * ATAQUE,DEFENSA, RECARGA
@@ -7,5 +9,5 @@ package modelo;
  * @author Henry Salazar, David Villamizar, Juan Espinosa
  */
 public enum TipoAccion {
-    ATAQUE, DEFENSA, RECARGA
+	ATAQUE, DEFENSA, RECARGA
 }

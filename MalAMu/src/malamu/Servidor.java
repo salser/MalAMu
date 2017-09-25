@@ -67,10 +67,11 @@ public class Servidor {
 	protected Duration duracionMaximaEmparejamiento;
 
 	/**
-	 * Pool de hilos que ejecuta al hilo base de escucha de nuevas peticiones de clientes.
+	 * Pool de hilos que ejecuta al hilo base de escucha de nuevas peticiones de
+	 * clientes.
 	 */
 	protected ExecutorService esBase;
-	
+
 	/**
 	 * Tiene la partida actual.
 	 */
@@ -139,7 +140,7 @@ public class Servidor {
 		}
 		esBase = ServiciosComunicacion.recibirTCP(colaClientes);
 	}
-	
+
 	/**
 	 * Hace que el servidor ignore peticiones de inicio de partida.
 	 */
@@ -149,7 +150,7 @@ public class Servidor {
 		}
 		esBase = null;
 	}
-	
+
 	/**
 	 * Inicia una partida nueva. Saca clientes de la cola de clientes y les pide
 	 * confirmación de su intención de unirse a partida.
@@ -178,8 +179,7 @@ public class Servidor {
 					conexion = colaClientes.take();
 				}
 				System.out.println("Sacado.");
-				
-				
+
 				Cliente cliente = (Cliente) conexion.objeto;
 				Socket socket = conexion.socket;
 
@@ -203,19 +203,20 @@ public class Servidor {
 
 		// Enviar lista inicial de jugadores
 		ServiciosComunicacion.enviarTCP(sockets, jugadores);
-		
+
 		Ronda ronda = iniciarRonda();
 		ejecutarRonda(ronda);
 		enviarResultados();
 		desconectarMuertos();
 	}
-	
+
 	/**
-	 * Pide confirmación al cliente y valida si el cliente de hecho confirmó correctamente.
-	 * 
+	 * Pide confirmación al cliente y valida si el cliente de hecho confirmó
+	 * correctamente.
+	 *
 	 * @param cliente cliente que va a confirmar.
 	 * @param socket socket mediante el cual se recibe la confirmación.
-	 * 
+	 *
 	 * @return true si confirmó correctamente, false de lo contrario.
 	 */
 	public boolean pedirConfirmacion(Cliente cliente, Socket socket) {
@@ -229,18 +230,19 @@ public class Servidor {
 
 	/**
 	 * Crea una nueva ronda, a partir de jugadas recibidas desde los clientes.
+	 *
 	 * @return la ronda creada.
 	 */
 	public Ronda iniciarRonda() {
 		Ronda ronda = new Ronda();
-		
+
 		// Recibir una jugada de cada cliente
 		List<Jugada> jugadas = (List<Jugada>) (List<?>) ServiciosComunicacion.recibirTCP(sockets);
 		ronda.setJugadas(jugadas);
-		
+
 		return ronda;
 	}
-	
+
 	/**
 	 * Ejecuta una ronda del juego.
 	 *
@@ -283,7 +285,8 @@ public class Servidor {
 	}
 
 	/**
-	 * Envía última ronda y estado actual de los jugadores en juego a los clientes.
+	 * Envía última ronda y estado actual de los jugadores en juego a los
+	 * clientes.
 	 */
 	public void enviarResultados() {
 		//TODO

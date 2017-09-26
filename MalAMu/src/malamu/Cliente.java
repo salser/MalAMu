@@ -1,6 +1,7 @@
 package malamu;
 
 import comunicacion.ServiciosComunicacion;
+import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -83,6 +84,7 @@ public class Cliente implements Serializable {
 		} catch (UnknownHostException ex) {
 			Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
 		}
+		return;
 	}
 
 	/**
@@ -109,10 +111,13 @@ public class Cliente implements Serializable {
 
 				// Recibir jugadores
 				List<Jugador> jugadores = (List<Jugador>) ServiciosComunicacion.recibirTCP(socket);
-
+				System.out.println("jugadores: " + jugadores);
 				// Enviar jugada
 			}
+			socket.close();
 		} catch (UnknownHostException ex) {
+			Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
+		} catch (IOException ex) {
 			Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
 		}
 	}

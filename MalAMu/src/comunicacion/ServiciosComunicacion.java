@@ -7,6 +7,7 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,44 +18,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import malamu.Cliente;
 
 public class ServiciosComunicacion {
 
 	public static final int PUERTO = 7896;
-
-	/**
-	 * Envía un mensaje y luego recibe una respuesta.
-	 *
-	 * @param socket socket mediante el cual se realiza la comunicación.
-	 * @param mensaje mensaje que se envía como petición.
-	 *
-	 * @return objeto recibido como respuesta.
-	 */
-	public static Object enviarYRecibirRespuestaTCP(Socket socket, Object mensaje) {
-		// Envía petición
-		try {
-			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-			out.writeObject(mensaje);
-			System.out.println("Received: " + mensaje);
-		} catch (UnknownHostException e) {
-			System.out.println("Socket:" + e.getMessage());
-		} catch (EOFException e) {
-			System.out.println("EOF:" + e.getMessage());
-		} catch (IOException e) {
-			System.out.println("readline:" + e.getMessage());
-		}
-
-		// Recibe respuesta
-		try {
-			ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-			return in.readObject();
-		} catch (IOException e) {
-			System.out.println("Connection:" + e.getMessage());
-		} catch (ClassNotFoundException ex) {
-			Logger.getLogger(ServiciosComunicacion.class.getName()).log(Level.SEVERE, null, ex);
-		}
-		return null;
-	}
 
 	/**
 	 * Envía un objeto serializado mediante un socket.
@@ -62,18 +30,20 @@ public class ServiciosComunicacion {
 	 * @param socket socket mediante el cual se va a enviar el mensaje.
 	 * @param mensaje mensaje que se va a enviar.
 	 */
-	public static void enviarTCP(Socket socket, Object mensaje) {
+	public static void enviarTCP(Socket socket, Object mensaje) throws IOException {
 		try {
 			// Enviar el mensaje por el socket
 			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 			out.writeObject(mensaje);
 			System.out.println("Received: " + mensaje);
+		} catch (SocketTimeoutException e) {
+			System.out.println("Timeout:" + e.getMessage());
 		} catch (UnknownHostException e) {
 			System.out.println("Socket:" + e.getMessage());
 		} catch (EOFException e) {
 			System.out.println("EOF:" + e.getMessage());
 		} catch (IOException e) {
-			System.out.println("readline:" + e.getMessage());
+			throw e;
 		}
 	}
 
@@ -86,6 +56,10 @@ public class ServiciosComunicacion {
 	public static void enviarTCP(List<Socket> sockets, Object mensaje) {
 		// Pool de hilos que maximiza uso del procesador
 		ExecutorService es = Executors.newWorkStealingPool(sockets.size());
+		
+		// Lista de tareas para esperar respuesta de los hilos
+		List<Future<?>> tareas = new ArrayList<>();
+		
 		// Para cada socket...
 		for (Socket socket : sockets) {
 			// ...crear un hilo que envie el mensaje
@@ -95,6 +69,8 @@ public class ServiciosComunicacion {
 					ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 					out.writeObject(mensaje);
 					System.out.println("Received: " + mensaje);
+				} catch (SocketTimeoutException e) {
+					System.out.println("Timeout:" + e.getMessage());
 				} catch (UnknownHostException e) {
 					System.out.println("Socket:" + e.getMessage());
 				} catch (EOFException e) {
@@ -104,8 +80,21 @@ public class ServiciosComunicacion {
 				}
 			};
 
-			// Ejecutar hilo
-			es.submit(hilo);
+			// Ejecutar hilo y guardar tarea
+			Future<?> tarea = es.submit(hilo);
+			tareas.add(tarea);
+		}
+		
+		// Para cada tarea...
+		for (Future<?> tarea : tareas) {
+			try {
+				// ...esperar a que termine
+				tarea.get();
+			} catch (InterruptedException ex) {
+				Logger.getLogger(ServiciosComunicacion.class.getName()).log(Level.SEVERE, null, ex);
+			} catch (ExecutionException ex) {
+				Logger.getLogger(ServiciosComunicacion.class.getName()).log(Level.SEVERE, null, ex);
+			}
 		}
 		es.shutdown();
 	}
@@ -121,6 +110,9 @@ public class ServiciosComunicacion {
 		// Pool de hilos que maximiza uso del procesador
 		ExecutorService es = Executors.newWorkStealingPool(sockets.size());
 
+		// Lista de tareas para esperar respuesta de los hilos
+		List<Future<?>> tareas = new ArrayList<>();
+		
 		// Para cada socket...
 		for (int i = 0; i < sockets.size(); i++) {
 			Socket socket = sockets.get(i);
@@ -132,6 +124,8 @@ public class ServiciosComunicacion {
 					ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 					out.writeObject(mensaje);
 					System.out.println("Received: " + mensaje);
+				} catch (SocketTimeoutException e) {
+					System.out.println("Timeout:" + e.getMessage());
 				} catch (UnknownHostException e) {
 					System.out.println("Socket:" + e.getMessage());
 				} catch (EOFException e) {
@@ -141,21 +135,35 @@ public class ServiciosComunicacion {
 				}
 			};
 
-			// Ejecutar hilo
-			es.submit(hilo);
+			// Ejecutar hilo y guardar tarea
+			Future<?> tarea = es.submit(hilo);
+			tareas.add(tarea);
+		}
+		
+		// Para cada tarea...
+		for (Future<?> tarea : tareas) {
+			try {
+				// ...esperar a que termine
+				tarea.get();
+			} catch (InterruptedException ex) {
+				Logger.getLogger(ServiciosComunicacion.class.getName()).log(Level.SEVERE, null, ex);
+			} catch (ExecutionException ex) {
+				Logger.getLogger(ServiciosComunicacion.class.getName()).log(Level.SEVERE, null, ex);
+			}
 		}
 		es.shutdown();
 	}
 
 	/**
 	 * Escucha PUERTO y crea nuevas conexiones con clientes que realizan
-	 * peticiones en este.
+	 * peticiones en este, o reconecta clientes que piden reconectarse.
 	 *
-	 * @param cola cola bloqueante donde se guardan objetos conexión obtenidos.
+	 * @param cola cola bloqueante donde se guardan objetos conexión recibidos de clientes que piden iniciar partida.
+	 * @param colaReconectados cola bloqueante donde se guardan objetos conexión recibidos de clientes que piden reconexión.
 	 *
 	 * @return pool del hilo que escucha peticiones nuevas.
 	 */
-	public static ExecutorService recibirTCP(BlockingQueue<Conexion> cola) {
+	public static ExecutorService recibirTCP(BlockingQueue<Conexion> cola, BlockingQueue<Conexion> colaReconectados) {
 		try {
 			// ServerSocket que escucha peticiones en PUERTO
 			ServerSocket listenSocket = new ServerSocket(PUERTO);
@@ -178,11 +186,13 @@ public class ServiciosComunicacion {
 						Runnable hilo = new Runnable() {
 							private Socket s;
 							private BlockingQueue<Conexion> q;
+							private BlockingQueue<Conexion> qr;
 
 							// Permite inicializar la clase anónima dado que java no permite definir un constructor
-							private Runnable init(Socket s, BlockingQueue<Conexion> q) {
+							private Runnable init(Socket s, BlockingQueue<Conexion> q, BlockingQueue<Conexion> qr) {
 								this.s = s;
 								this.q = q;
+								this.qr = qr;
 								return this;
 							}
 
@@ -192,7 +202,14 @@ public class ServiciosComunicacion {
 								try {
 									// Leer objeto, crear conexion y encolar
 									ObjectInputStream in = new ObjectInputStream(s.getInputStream());
-									q.put(new Conexion(s, in.readObject()));
+									Object o = in.readObject();
+									if (o instanceof Cliente) {
+										q.put(new Conexion(s, o));
+									} else if (o instanceof Conexion) {
+										qr.put(new Conexion(s, ((Conexion) o).objeto));
+									}
+								} catch (SocketTimeoutException e) {
+									System.out.println("Timeout:" + e.getMessage());
 								} catch (IOException e) {
 									System.out.println("Connection:" + e.getMessage());
 								} catch (ClassNotFoundException ex) {
@@ -201,7 +218,7 @@ public class ServiciosComunicacion {
 									Logger.getLogger(ServiciosComunicacion.class.getName()).log(Level.SEVERE, null, ex);
 								}
 							}
-						}.init(clientSocket, cola);
+						}.init(clientSocket, cola, colaReconectados);
 
 						// Ejecutar hilo
 						es.submit(hilo);
@@ -228,14 +245,18 @@ public class ServiciosComunicacion {
 	 * @param socket socket mediante el cual se va a recibir el objeto.
 	 *
 	 * @return el objeto que se recibió.
+	 * 
+	 * @throws SocketTimeoutException cuando el timeout del socket se cumple antes de recibir un mensaje.
 	 */
-	public static Object recibirTCP(Socket socket) {
+	public static Object recibirTCP(Socket socket) throws SocketTimeoutException, IOException {
 		try {
 			// Leer objeto y retornar
 			ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 			return in.readObject();
+		} catch (SocketTimeoutException e) {
+			throw e;
 		} catch (IOException e) {
-			System.out.println("Connection:" + e.getMessage());
+			throw e;
 		} catch (ClassNotFoundException ex) {
 			Logger.getLogger(ServiciosComunicacion.class.getName()).log(Level.SEVERE, null, ex);
 		}
@@ -281,6 +302,9 @@ public class ServiciosComunicacion {
 						// Leer objeto y guardar en la posición correspondiente dentro de la lista
 						ObjectInputStream in = new ObjectInputStream(s.getInputStream());
 						r.set(pos, (Object) in.readObject());
+					} catch (SocketTimeoutException e) {
+						r.set(pos, null);
+						System.out.println("Timeout:" + e.getMessage());
 					} catch (IOException e) {
 						System.out.println("Connection:" + e.getMessage());
 					} catch (ClassNotFoundException ex) {

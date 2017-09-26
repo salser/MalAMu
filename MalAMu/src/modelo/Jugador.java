@@ -86,7 +86,7 @@ public class Jugador implements Serializable {
 		this.costoDefensa = 1;
 		this.vidaMaxima = 100;
 		this.vida = 100;
-                this.posicionServidor = -1;
+		this.posicionServidor = -1;
                 
 	}
 
@@ -119,7 +119,7 @@ public class Jugador implements Serializable {
 		this.costoDefensa = costoDefensa;
 		this.cantidadRecargaAtaque = cantidadRecargaAtaque;
 		this.cantidadRecargaDefensa = cantidadRecargaDefensa;
-                this.posicionServidor = -1;
+		this.posicionServidor = -1;
 	}
 
 	/**

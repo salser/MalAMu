@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+
+<AnchorPane id="AnchorPane" fx:id="tblInicio" prefHeight="216.0" prefWidth="265.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8">
+   <children>
+      <Button layoutX="110.0" layoutY="143.0" mnemonicParsing="false" text="Jugar" />
+      <Label layoutX="81.0" layoutY="96.0" prefHeight="25.0" prefWidth="104.0" text="Nombre" />
+   </children>
+</AnchorPane>

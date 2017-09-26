@@ -131,6 +131,12 @@ public class Servidor {
 			Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
 		}
 	}
+	/**
+	 * 
+	 */
+	public void recibirJugadas(){
+		
+	}
 
 	/**
 	 * Pone al servidor a escuchar peticiones de inicio de partida.
@@ -192,7 +198,7 @@ public class Servidor {
 				if (pedirConfirmacion(cliente, socket)) {
 					// Limpiar objeto cliente
 					cliente = new Cliente(cliente.getDireccion(), new Jugador(cliente.getJugador().getNombre()));
-					cliente.getJugador()
+					cliente.getJugador();
 					cliente.setCodigoAcceso(codigo);
 					
 					// Guardar la conexión

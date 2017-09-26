@@ -141,8 +141,8 @@ public class Cliente implements Serializable {
 	 * Método que se invoca para solicitar a la partida los resultados de la
 	 * ronda anterior.
 	 */
-	public void recibirResultados() {
-
+	public List<Jugador> recibirResultados() {
+		return null;
 	}
 
 	/**

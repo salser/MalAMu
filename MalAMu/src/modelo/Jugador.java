@@ -238,6 +238,18 @@ public class Jugador implements Serializable {
 		return danoAtaque;
 	}
 
+        public void setPosicionServidor(int posicionServidor) {
+            this.posicionServidor = posicionServidor;
+        }
+
+        public int getPosicionServidor() {
+            return posicionServidor;
+        }
+        
+        
+        
+        
+
 	@Override
 	public String toString() {
 		return "Jugador{" + "nombre=" + nombre + ", danoAtaque=" + danoAtaque + ", vida=" + vida + ", vidaMaxima=" + vidaMaxima + ", cargaAtaque=" + cargaAtaque + ", cargaDefensa=" + cargaDefensa + ", cargaMaximaAtaque=" + cargaMaximaAtaque + ", cargaMaximaDefensa=" + cargaMaximaDefensa + ", costoAtaque=" + costoAtaque + ", costoDefensa=" + costoDefensa + ", cantidadRecargaAtaque=" + cantidadRecargaAtaque + ", cantidadRecargaDefensa=" + cantidadRecargaDefensa + '}';

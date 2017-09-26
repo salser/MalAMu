@@ -62,11 +62,11 @@ public class Jugador implements Serializable {
 	 * Indica cuanto se recupera de carga de defensa al recargar.
 	 */
 	private int cantidadRecargaDefensa;
-        
-        /**
-         * Identificador de la posicion del cliente en el registro del servidor
-         */
-        private int posicionServidor;
+
+	/**
+	 * Identificador de la posicion del cliente en el registro del servidor
+	 */
+	private int posicionServidor;
 
 	/**
 	 * Crea un jugador con un nombre específico y parámetros por defecto.
@@ -86,8 +86,8 @@ public class Jugador implements Serializable {
 		this.costoDefensa = 1;
 		this.vidaMaxima = 100;
 		this.vida = 100;
-                this.posicionServidor = -1;
-                
+		this.posicionServidor = -1;
+
 	}
 
 	/**
@@ -119,7 +119,7 @@ public class Jugador implements Serializable {
 		this.costoDefensa = costoDefensa;
 		this.cantidadRecargaAtaque = cantidadRecargaAtaque;
 		this.cantidadRecargaDefensa = cantidadRecargaDefensa;
-                this.posicionServidor = -1;
+		this.posicionServidor = -1;
 	}
 
 	/**
@@ -230,6 +230,10 @@ public class Jugador implements Serializable {
 		return vida;
 	}
 
+	public void setVida(int vida) {
+		this.vida = vida;
+	}
+
 	public String getNombre() {
 		return nombre;
 	}
@@ -238,18 +242,40 @@ public class Jugador implements Serializable {
 		return danoAtaque;
 	}
 
-        public void setPosicionServidor(int posicionServidor) {
-            this.posicionServidor = posicionServidor;
-        }
+	public void setPosicionServidor(int posicionServidor) {
+		this.posicionServidor = posicionServidor;
+	}
 
-        public int getPosicionServidor() {
-            return posicionServidor;
-        }
-        
-        
-        
-        
+	public int getPosicionServidor() {
+		return posicionServidor;
+	}
 
+	public int getVidaMaxima() {
+		return vidaMaxima;
+	}
+
+	public int getCargaAtaque() {
+		return cargaAtaque;
+	}
+
+	public int getCargaDefensa() {
+		return cargaDefensa;
+	}
+
+	public int getCargaMaximaAtaque() {
+		return cargaMaximaAtaque;
+	}
+
+	public int getCargaMaximaDefensa() {
+		return cargaMaximaDefensa;
+	}
+
+	public void setCargaAtaque(int cargaAtaque) {
+		this.cargaAtaque = cargaAtaque;
+	}
+	
+
+	
 	@Override
 	public String toString() {
 		return "Jugador{" + "nombre=" + nombre + ", danoAtaque=" + danoAtaque + ", vida=" + vida + ", vidaMaxima=" + vidaMaxima + ", cargaAtaque=" + cargaAtaque + ", cargaDefensa=" + cargaDefensa + ", cargaMaximaAtaque=" + cargaMaximaAtaque + ", cargaMaximaDefensa=" + cargaMaximaDefensa + ", costoAtaque=" + costoAtaque + ", costoDefensa=" + costoDefensa + ", cantidadRecargaAtaque=" + cantidadRecargaAtaque + ", cantidadRecargaDefensa=" + cantidadRecargaDefensa + '}';

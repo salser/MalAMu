@@ -67,9 +67,8 @@
       </VBox>
       <TableView fx:id="tblPartida" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefWidth="400.0" HBox.hgrow="ALWAYS">
          <columns>
-            <TableColumn prefWidth="75.0" text="C1" />
-            <TableColumn prefWidth="75.0" text="C2" />
-         </columns>
-      </TableView>
+            <TableColumn fx:id="tblColNombre" prefWidth="75.0" text="Nombre" />
+            <TableColumn fx:id="tblColVida" prefWidth="75.0" text="Vida" />
+         </columns></TableView>
    </children>
 </HBox>

@@ -1,15 +1,11 @@
 package malamu;
 
-import comunicacion.Conexion;
 import comunicacion.ServiciosComunicacion;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
@@ -131,18 +127,26 @@ public class Cliente implements Serializable {
 
 	/**
 	 * Método que se invoca para que el jugador envíe una jugada a la partida.
+	 * @param jugada Decision tomada por el usuario.
 	 */
-	public void enviarJugada() {
-		ServiciosComunicacion.enviarTCP(socket, "");
-
+	public void enviarJugada(Jugada jugada) {
+		this.ultimaJugada = jugada;
+		ServiciosComunicacion.enviarTCP(socket, jugada);
 	}
 
 	/**
 	 * Método que se invoca para solicitar a la partida los resultados de la
 	 * ronda anterior.
+	 * @return 
 	 */
 	public List<Jugador> recibirResultados() {
-		return null;
+		
+		this.jugador = (Jugador)ServiciosComunicacion.recibirTCP(socket);
+		
+		List<Jugador> resultadoJugadores = (List<Jugador>)ServiciosComunicacion.recibirTCP(socket);
+		resultadoJugadores.remove(this.jugador);
+		
+		return resultadoJugadores;
 	}
 
 	/**
@@ -163,7 +167,9 @@ public class Cliente implements Serializable {
 
             }
 	}
-        
+    /**
+	 * Metodo que cierra conexion para que un cliente pueda reiniciarse.
+	 */    
 	public void cerrarConexion(){
 		if(socket != null)
 		{
@@ -175,7 +181,6 @@ public class Cliente implements Serializable {
 		}
 	}
                 
-
 	public Jugador getJugador() {
 		return jugador;
 	}
@@ -192,8 +197,6 @@ public class Cliente implements Serializable {
 		this.codigoAcceso = codigoAcceso;
 	}
 	
-	
-
 	public Ronda getUltimaRonda() {
 		return ultimaRonda;
 	}

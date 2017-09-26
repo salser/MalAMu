@@ -159,18 +159,17 @@ public class Cliente implements Serializable {
             }
 	}
         
-        public void cerrarConexion(){
-            if(socket != null)
-            {
-                try {    
-                    socket.close();
-                } catch (IOException ex) {
-                    Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        }
-                
-
+	public void cerrarConexion(){
+		if(socket != null)
+		{
+			try {    
+				socket.close();
+			} catch (IOException ex) {
+				Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
+			}
+		}
+	}
+	
 	public Jugador getJugador() {
 		return jugador;
 	}
@@ -187,8 +186,6 @@ public class Cliente implements Serializable {
 		this.codigoAcceso = codigoAcceso;
 	}
 	
-	
-
 	public Ronda getUltimaRonda() {
 		return ultimaRonda;
 	}
@@ -196,15 +193,8 @@ public class Cliente implements Serializable {
 	public InetAddress getDireccion() {
 		return direccion;
 	}
-
-        public UUID getCodigoAcceso() {
-            return codigoAcceso;
-        }
-
-        public Socket getSocket() {
-            return socket;
-        }
-        
-        
-        
+	
+	public Socket getSocket() {
+		return socket;
+	}  
 }

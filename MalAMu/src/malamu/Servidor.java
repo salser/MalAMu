@@ -7,10 +7,13 @@ package malamu;
 
 import comunicacion.Conexion;
 import comunicacion.ServiciosComunicacion;
+import static comunicacion.ServiciosComunicacion.PUERTO;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -19,6 +22,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -54,7 +58,7 @@ public class Servidor {
 	 * Tiempo de inactividad máximo que se permite antes de terminar la conexión
 	 * con este servidor.
 	 */
-	protected Duration duracionMaximaInactividad;
+	protected int duracionMaximaInactividadMS;
 
 	/**
 	 * Tiempo tomado al iniciar el emparejamiento para una nueva partida.
@@ -65,13 +69,18 @@ public class Servidor {
 	 * Tiempo de emparejamiento máximo que se permite antes de iniciar una
 	 * partida con los clientes seleccionados hasta ese momento.
 	 */
-	protected Duration duracionMaximaEmparejamiento;
+	protected int duracionMaximaEmparejamientoMS;
 
 	/**
 	 * Pool de hilos que ejecuta al hilo base de escucha de nuevas peticiones de
 	 * clientes.
 	 */
 	protected ExecutorService esBase;
+
+	/**
+	 * Pool de hilos que ejecuta al hilo que reconecta clientes.
+	 */
+	protected ExecutorService esReconectados;
 
 	/**
 	 * Tiene la partida actual.
@@ -91,6 +100,11 @@ public class Servidor {
 	protected BlockingQueue<Conexion> colaClientes = new LinkedBlockingQueue<>();
 
 	/**
+	 * Cola de los clientes que intentan reconectarse.
+	 */
+	protected BlockingQueue<Conexion> colaClientesReconectados = new LinkedBlockingQueue<>();
+
+	/**
 	 * Constructor de un servidor que inicia escuchando pedidos de unirse a
 	 * partida.
 	 *
@@ -101,29 +115,31 @@ public class Servidor {
 	 * crear una partida.
 	 * @param tiempoInicioInactividad el tiempo en que inició la inactividad
 	 * actual de este servidor.
-	 * @param duracionMaximaInactividad la duración máxima de inactividad
-	 * permitida con este servidor.
+	 * @param duracionMaximaInactividadMS la duración máxima de inactividad
+	 * permitida con este servidor en milisegundos.
 	 * @param tiempoInicioEmparejamiento el tiempo en que inició el
 	 * emparejamiento actual.
-	 * @param duracionMaximaEmparejamiento el tiempo máximo que puede durar el
-	 * emparejamiento.
+	 * @param duracionMaximaEmparejamientoMS el tiempo máximo que puede durar el
+	 * emparejamiento en milisegundos.
 	 */
-	public Servidor(InetAddress direccion, int numJugadoresMin, int numJugadoresMax, LocalDateTime tiempoInicioInactividad, Duration duracionMaximaInactividad, LocalDateTime tiempoInicioEmparejamiento, Duration duracionMaximaEmparejamiento) {
+	public Servidor(InetAddress direccion, int numJugadoresMin, int numJugadoresMax, LocalDateTime tiempoInicioInactividad, int duracionMaximaInactividadMS, LocalDateTime tiempoInicioEmparejamiento, int duracionMaximaEmparejamientoMS) {
 		this.direccion = direccion;
 		this.numJugadoresMin = numJugadoresMin;
 		this.numJugadoresMax = numJugadoresMax;
 		this.tiempoInicioInactividad = tiempoInicioInactividad;
-		this.duracionMaximaInactividad = duracionMaximaInactividad;
+		this.duracionMaximaInactividadMS = duracionMaximaInactividadMS;
 		this.tiempoInicioEmparejamiento = tiempoInicioEmparejamiento;
-		this.duracionMaximaEmparejamiento = duracionMaximaEmparejamiento;
+		this.duracionMaximaEmparejamientoMS = duracionMaximaEmparejamientoMS;
 		this.esBase = null;
+		this.esReconectados = null;
 		recibirJugadoresNuevos();
+		recibirJugadoresReconectados();
 	}
 
 	public static void main(String[] args) {
 		Servidor servidor;
 		try {
-			servidor = new Servidor(InetAddress.getByName("127.0.0.1"), 4, 12, null, Duration.ofMillis(1000), null, Duration.ofMillis(0));
+			servidor = new Servidor(InetAddress.getByName("127.0.0.1"), 4, 12, null, 1000, null, 1000);
 			while (true) {
 				servidor.iniciarPartida();
 			}
@@ -139,7 +155,7 @@ public class Servidor {
 		if (esBase != null) {
 			esBase.shutdownNow();
 		}
-		esBase = ServiciosComunicacion.recibirTCP(colaClientes);
+		esBase = ServiciosComunicacion.recibirTCP(colaClientes, colaClientesReconectados);
 	}
 
 	/**
@@ -180,25 +196,33 @@ public class Servidor {
 					conexion = colaClientes.take();
 				}
 				System.out.println("Sacado.");
-				
+
 				Cliente cliente = (Cliente) conexion.objeto;
 				Socket socket = conexion.socket;
 
-				// Generar código único de acceso para el cliente.
-				UUID codigo = UUID.randomUUID();
-				cliente.setCodigoAcceso(codigo);
-		
-				// Si confirmó correctamente
-				if (pedirConfirmacion(cliente, socket)) {
-					// Limpiar objeto cliente
-					cliente = new Cliente(cliente.getDireccion(), new Jugador(cliente.getJugador().getNombre()));
-					cliente.getJugador()
-					cliente.setCodigoAcceso(codigo);
+				try {
+					// Ajustar timeout del socket
+					socket.setSoTimeout(duracionMaximaInactividadMS);
 					
-					// Guardar la conexión
-					sockets.add(socket);
-					clientes.add(cliente);
-					numConfirmados++;
+					// Generar código único de acceso para el cliente
+					UUID codigo = UUID.randomUUID();
+					cliente.setCodigoAcceso(codigo);
+					cliente.getJugador().setPosicionServidor(clientes.size());
+
+					// Si confirmó correctamente
+					if (pedirConfirmacion(cliente, socket)) {
+						// Limpiar objeto cliente
+						cliente = new Cliente(cliente.getDireccion(), new Jugador(cliente.getJugador().getNombre()));
+						cliente.getJugador().setPosicionServidor(clientes.size());
+						cliente.setCodigoAcceso(codigo);
+
+						// Guardar la conexión
+						sockets.add(socket);
+						clientes.add(cliente);
+						numConfirmados++;
+					}
+				} catch (SocketException ex) {
+					Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
 				}
 			} catch (InterruptedException ex) {
 				Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
@@ -229,7 +253,12 @@ public class Servidor {
 	public boolean pedirConfirmacion(Cliente cliente, Socket socket) {
 		// Pedir confirmación al cliente
 		ServiciosComunicacion.enviarTCP(socket, cliente);
-		cliente = (Cliente) ServiciosComunicacion.recibirTCP(socket);
+		try {
+			cliente = (Cliente) ServiciosComunicacion.recibirTCP(socket);
+		} catch (SocketTimeoutException ex) {
+			Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+			return false;
+		}
 
 		// Resultado confirmación
 		return cliente != null && cliente.getDireccion() != null && cliente.getJugador() != null && cliente.getJugador().getNombre() != null;
@@ -245,6 +274,7 @@ public class Servidor {
 
 		// Recibir una jugada de cada cliente
 		List<Jugada> jugadas = (List<Jugada>) (List<?>) ServiciosComunicacion.recibirTCP(sockets);
+		jugadas = matarDormidos(jugadas);
 		ronda.setJugadas(jugadas);
 
 		return ronda;
@@ -316,5 +346,87 @@ public class Servidor {
 				sockets.remove(i);
 			}
 		}
+	}
+
+	/**
+	 * Hace que el servidor maneje peticiones de reconexión.
+	 */
+	public void recibirJugadoresReconectados() {
+		// Pool de hilos que crea un solo hilo nuevo
+		ExecutorService esBase = Executors.newSingleThreadExecutor();
+
+		// Hilo que escucha peticiones
+		Runnable hiloEscucha = () -> {
+			// Reconectar clientes
+			while (!Thread.interrupted()) {
+				try {
+					Conexion conexion = null;
+					
+					// Sacar de la cola
+					System.out.println("Sacando.");
+					conexion = colaClientes.take();
+					System.out.println("Sacado.");
+
+					
+					Cliente cliente = (Cliente) conexion.objeto;
+					Socket socket = conexion.socket;
+					
+					try {
+						socket.setSoTimeout(duracionMaximaInactividadMS);
+						
+						// Generar código único de acceso para el cliente.
+						UUID codigo = UUID.randomUUID();
+						cliente.setCodigoAcceso(codigo);
+						cliente.getJugador().setPosicionServidor(clientes.size());
+
+						// Si confirmó correctamente
+						if (pedirConfirmacion(cliente, socket)) {
+							// Limpiar objeto cliente
+							cliente = new Cliente(cliente.getDireccion(), new Jugador(cliente.getJugador().getNombre()));
+							cliente.getJugador().setPosicionServidor(clientes.size());
+							cliente.setCodigoAcceso(codigo);
+
+							// Guardar la conexión
+							sockets.add(socket);
+							clientes.add(cliente);
+							numConfirmados++;
+						}
+					} catch (SocketException ex) {
+						Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+					}
+				} catch (InterruptedException ex) {
+					Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Hace que el servidor ignore peticiones de reconexión.
+	 */
+	public void ignorarJugadoresReconectados() {
+		if (esReconectados != null) {
+			esReconectados.shutdownNow();
+		}
+		esReconectados = null;
+	}
+
+	private List<Jugada> matarDormidos(List<Jugada> jugadas) {
+		List<Jugada> jugadas1 = new ArrayList<>(jugadas);
+		List<Jugador> jugadores = partida.getJugadores();
+		for (int i = jugadores.size() - 1; i >= 0; i--) {
+			Jugada jugada = jugadas1.get(i);
+			if (jugada == null) {
+				partida.getClientes().remove(i);
+				jugadas.remove(i);
+				try {
+					sockets.get(i).close();
+				} catch (IOException ex) {
+					Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+				}
+				sockets.remove(i);
+			}
+		}
+		return jugadas;
 	}
 }

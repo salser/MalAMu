@@ -56,6 +56,7 @@ public class Cliente implements Serializable {
 	 * Código único que le otorga el servidor a cada cliente.
 	 */
 	private String codigoAcceso;
+        
 
 	/**
 	 * Constructor de un cliente.

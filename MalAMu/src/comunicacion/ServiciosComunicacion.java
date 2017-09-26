@@ -24,10 +24,10 @@ public class ServiciosComunicacion {
 
 	/**
 	 * Envía un mensaje y luego recibe una respuesta.
-	 * 
+	 *
 	 * @param socket socket mediante el cual se realiza la comunicación.
 	 * @param mensaje mensaje que se envía como petición.
-	 * 
+	 *
 	 * @return objeto recibido como respuesta.
 	 */
 	public static Object enviarYRecibirRespuestaTCP(Socket socket, Object mensaje) {
@@ -43,7 +43,7 @@ public class ServiciosComunicacion {
 		} catch (IOException e) {
 			System.out.println("readline:" + e.getMessage());
 		}
-		
+
 		// Recibe respuesta
 		try {
 			ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
@@ -63,27 +63,18 @@ public class ServiciosComunicacion {
 	 * @param mensaje mensaje que se va a enviar.
 	 */
 	public static void enviarTCP(Socket socket, Object mensaje) {
-		// Pool de hilos que crea un solo hilo nuevo
-		ExecutorService es = Executors.newSingleThreadExecutor();
-		
-		// Crear un hilo que envíe el mensaje
-		Runnable hilo = () -> {
-			try {
-				// Enviar el mensaje por el socket
-				ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-				out.writeObject(mensaje);
-				System.out.println("Received: " + mensaje);
-			} catch (UnknownHostException e) {
-				System.out.println("Socket:" + e.getMessage());
-			} catch (EOFException e) {
-				System.out.println("EOF:" + e.getMessage());
-			} catch (IOException e) {
-				System.out.println("readline:" + e.getMessage());
-			}
-		};
-		
-		// Ejecutar hilo
-		es.submit(hilo);
+		try {
+			// Enviar el mensaje por el socket
+			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+			out.writeObject(mensaje);
+			System.out.println("Received: " + mensaje);
+		} catch (UnknownHostException e) {
+			System.out.println("Socket:" + e.getMessage());
+		} catch (EOFException e) {
+			System.out.println("EOF:" + e.getMessage());
+		} catch (IOException e) {
+			System.out.println("readline:" + e.getMessage());
+		}
 	}
 
 	/**
@@ -112,22 +103,24 @@ public class ServiciosComunicacion {
 					System.out.println("readline:" + e.getMessage());
 				}
 			};
-			
+
 			// Ejecutar hilo
 			es.submit(hilo);
 		}
+		es.shutdown();
 	}
 
 	/**
 	 * Envía objetos de una lista mediante cada sockets de una lista.
 	 *
 	 * @param sockets lista de sockets por donde se van enviar los mensajes.
-	 * @param mensajes lista con cada mensaje que se quiere enviar por cada socket.
+	 * @param mensajes lista con cada mensaje que se quiere enviar por cada
+	 * socket.
 	 */
 	public static void enviarTCP(List<Socket> sockets, List<Object> mensajes) {
 		// Pool de hilos que maximiza uso del procesador
 		ExecutorService es = Executors.newWorkStealingPool(sockets.size());
-		
+
 		// Para cada socket...
 		for (int i = 0; i < sockets.size(); i++) {
 			Socket socket = sockets.get(i);
@@ -147,10 +140,11 @@ public class ServiciosComunicacion {
 					System.out.println("readline:" + e.getMessage());
 				}
 			};
-			
+
 			// Ejecutar hilo
 			es.submit(hilo);
 		}
+		es.shutdown();
 	}
 
 	/**
@@ -158,7 +152,7 @@ public class ServiciosComunicacion {
 	 * peticiones en este.
 	 *
 	 * @param cola cola bloqueante donde se guardan objetos conexión obtenidos.
-	 * 
+	 *
 	 * @return pool del hilo que escucha peticiones nuevas.
 	 */
 	public static ExecutorService recibirTCP(BlockingQueue<Conexion> cola) {
@@ -208,18 +202,19 @@ public class ServiciosComunicacion {
 								}
 							}
 						}.init(clientSocket, cola);
-						
+
 						// Ejecutar hilo
 						es.submit(hilo);
 					} catch (IOException ex) {
 						Logger.getLogger(ServiciosComunicacion.class.getName()).log(Level.SEVERE, null, ex);
 					}
 				}
+				es.shutdown();
 			};
-			
+
 			// Ejecutar hilo
 			esBase.submit(hiloEscucha);
-			
+
 			return esBase;
 		} catch (IOException e) {
 			System.out.println("Listen socket:" + e.getMessage());
@@ -231,7 +226,7 @@ public class ServiciosComunicacion {
 	 * Recibe un objeto mediante un socket.
 	 *
 	 * @param socket socket mediante el cual se va a recibir el objeto.
-	 * 
+	 *
 	 * @return el objeto que se recibió.
 	 */
 	public static Object recibirTCP(Socket socket) {
@@ -251,7 +246,7 @@ public class ServiciosComunicacion {
 	 * Recibe objetos mediante cada uno de los sockets de la lista.
 	 *
 	 * @param sockets lista de sockets mediante los cuales se va a recibir.
-	 * 
+	 *
 	 * @return lista de objetos recibidos.
 	 */
 	public static List<Object> recibirTCP(List<Socket> sockets) {
@@ -308,6 +303,7 @@ public class ServiciosComunicacion {
 				Logger.getLogger(ServiciosComunicacion.class.getName()).log(Level.SEVERE, null, ex);
 			}
 		}
+		es.shutdown();
 		return recibidos;
 	}
 
@@ -315,7 +311,7 @@ public class ServiciosComunicacion {
 	 * Abre un socket con el servidor que escucha en la dirección dada.
 	 *
 	 * @param direccionDst dirección donde escucha el servidor.
-	 * 
+	 *
 	 * @return el socket que se abrió con el servidor.
 	 */
 	public static Socket abrirSocketConServidor(InetAddress direccionDst) {

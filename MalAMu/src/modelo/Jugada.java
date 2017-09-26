@@ -18,7 +18,7 @@ public class Jugada implements Serializable {
 	 * objetivo: En el caso de ser el tipo de jugada atacar, este será el
 	 * objetivo que tiene el jugador descrito arriba
 	 */
-	private Jugador objetivo;
+	private int posObjetivo;
 	/**
 	 * TipoAccion: define el tipo de acción que el jugador va a jugar en su
 	 * turno
@@ -29,16 +29,16 @@ public class Jugada implements Serializable {
 	 * Constructor de una Jugada.
 	 *
 	 * @param jugador
-	 * @param objetivo
+	 * @param posObjetivo
 	 * @param tipo
 	 */
-	public Jugada(Jugador jugador, Jugador objetivo, TipoAccion tipo) {
+	public Jugada(Jugador jugador, int posObjetivo, TipoAccion tipo) {
 		this.jugador = jugador;
 		this.tipo = tipo;
 		if (!tipo.equals(TipoAccion.ATAQUE)) {
-			this.objetivo = jugador;
+			this.posObjetivo = -1;
 		} else {
-			this.objetivo = objetivo;
+			this.posObjetivo = posObjetivo;
 		}
 	}
 
@@ -46,22 +46,20 @@ public class Jugada implements Serializable {
 		return jugador;
 	}
 
-	public Jugador getObjetivo() {
-		return objetivo;
+	public int getPosObjetivo() {
+		return posObjetivo;
 	}
 
 	public TipoAccion getTipo() {
 		return tipo;
 	}
 
-	/**
-	 * Convierte una jugada a algo entendible
-	 *
-	 * @return una jugada en una cadena de caracteres
-	 */
 	@Override
 	public String toString() {
-		return "Jugada{" + "jugador=" + jugador + ", objetivo=" + objetivo + ", tipo=" + tipo + '}';
+		return "Jugada{" + "jugador=" + jugador + ", posObjetivo=" + posObjetivo + ", tipo=" + tipo + '}';
 	}
 
+	
+
+	
 }

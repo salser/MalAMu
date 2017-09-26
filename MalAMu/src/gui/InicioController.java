@@ -23,7 +23,6 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import malamu.Cliente;
 import modelo.Jugador;
-import sun.applet.Main;
 
 /**
  *

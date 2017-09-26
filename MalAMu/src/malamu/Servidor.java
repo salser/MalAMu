@@ -39,11 +39,6 @@ import modelo.TipoAccion;
  */
 public class Servidor {
 
-	/**
-	 * Dirección IP del servidor.
-	 */
-	protected InetAddress direccion;
-
 	protected int numJugadoresMax;
 
 	protected int numJugadoresMin;
@@ -92,7 +87,7 @@ public class Servidor {
 	 * Cada posición corresponde con una posición de la lista de clientes de
 	 * partida.
 	 */
-	protected List<Socket> sockets = new ArrayList<Socket>();
+	protected List<Socket> sockets = new ArrayList<>();
 
 	/**
 	 * Cola de los clientes que han pedido unirse a una partida.
@@ -108,7 +103,6 @@ public class Servidor {
 	 * Constructor de un servidor que inicia escuchando pedidos de unirse a
 	 * partida.
 	 *
-	 * @param direccion la dirección IP donde se expone el servidor.
 	 * @param numJugadoresMin la cantidad mínima de jugadores que se necesita
 	 * para iniciar una partida.
 	 * @param numJugadoresMax la cantidad máxima de jugadores con que se puede
@@ -122,8 +116,7 @@ public class Servidor {
 	 * @param duracionMaximaEmparejamientoMS el tiempo máximo que puede durar el
 	 * emparejamiento en milisegundos.
 	 */
-	public Servidor(InetAddress direccion, int numJugadoresMin, int numJugadoresMax, LocalDateTime tiempoInicioInactividad, int duracionMaximaInactividadMS, LocalDateTime tiempoInicioEmparejamiento, int duracionMaximaEmparejamientoMS) {
-		this.direccion = direccion;
+	public Servidor(int numJugadoresMin, int numJugadoresMax, LocalDateTime tiempoInicioInactividad, int duracionMaximaInactividadMS, LocalDateTime tiempoInicioEmparejamiento, int duracionMaximaEmparejamientoMS) {
 		this.numJugadoresMin = numJugadoresMin;
 		this.numJugadoresMax = numJugadoresMax;
 		this.tiempoInicioInactividad = tiempoInicioInactividad;
@@ -138,13 +131,9 @@ public class Servidor {
 
 	public static void main(String[] args) {
 		Servidor servidor;
-		try {
-			servidor = new Servidor(InetAddress.getByName("127.0.0.1"), 4, 12, null, 5000, null, 5000);
-			while (true) {
-				servidor.iniciarPartida();
-			}
-		} catch (UnknownHostException ex) {
-			Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+		servidor = new Servidor(2, 12, null, 60000, null, 60000);
+		while (true) {
+			servidor.iniciarPartida();
 		}
 	}
 
@@ -203,7 +192,7 @@ public class Servidor {
 				try {
 					// Ajustar timeout del socket
 					socket.setSoTimeout(duracionMaximaInactividadMS);
-					
+
 					// Generar código único de acceso para el cliente
 					UUID codigo = UUID.randomUUID();
 					UUID codigoJugador = UUID.randomUUID();
@@ -231,22 +220,24 @@ public class Servidor {
 
 		// Generar lista de jugadores
 		List<Jugador> jugadores = partida.getJugadores();
-		
+
 		enviarResultados(jugadores);
 
 		while (!partida.getClientes().isEmpty()) {
-			
+
+			System.out.println("JUGADORES:" + jugadores);
 			Ronda ronda = iniciarRonda();
-			
+
 			ejecutarRonda(ronda);
-			
+
 			// Actualizar lista de jugadores
 			jugadores = partida.getJugadores();
 			
+
 			enviarResultados(jugadores);
-			
+
 			desconectarMuertos();
-			
+
 			// Actualizar lista de jugadores
 			jugadores = partida.getJugadores();
 		}
@@ -288,20 +279,38 @@ public class Servidor {
 		Ronda ronda = new Ronda();
 
 		List<Cliente> clientes = (List<Cliente>) (List<?>) ServiciosComunicacion.recibirTCP(sockets);
-		
+
 		// Recibir una jugada de cada cliente
 		List<Jugada> jugadas = (List<Jugada>) (List<?>) ServiciosComunicacion.recibirTCP(sockets);
 		
 		// Para cada jugada...
 		for (int i = 0; i < jugadas.size(); i++) {
 			// ...validar si el jugador que hace la jugada es el mismo del cliente que la envió.
-			if (jugadas.get(i) != null && (!clientes.get(i).getCodigoAcceso().equals(partida.getClientes().get(i).getCodigoAcceso()) || !jugadas.get(i).getJugador().equals(partida.getClientes().get(i).getJugador()))) {
+			if (
+				jugadas.get(i) == null ||
+				clientes.get(i) == null ||
+				clientes.get(i).getCodigoAcceso() == null ||
+				!clientes.get(i).getCodigoAcceso().equals(partida.getClientes().get(i).getCodigoAcceso()) ||
+				jugadas.get(i).getJugador() == null ||
+				jugadas.get(i).getJugador().getId() == null ||
+				!jugadas.get(i).getJugador().equals(partida.getClientes().get(i).getJugador()) ||
+				(
+					jugadas.get(i).getTipo().equals(TipoAccion.ATAQUE) &&
+					(
+						jugadas.get(i).getPosObjetivo() >= jugadas.size() ||
+						jugadas.get(i).getPosObjetivo() < -1
+					)
+				)
+			) {
 				jugadas.set(i, null);
+			} else {
+				clientes.get(i).setJugador(jugadas.get(i).getJugador());
 			}
 		}
 		
+
 		jugadas = matarDormidos(jugadas);
-		
+
 		ronda.setJugadas(jugadas);
 
 		return ronda;
@@ -314,6 +323,7 @@ public class Servidor {
 	 */
 	public void ejecutarRonda(Ronda ronda) {
 		List<Jugada> jugadas = ronda.getJugadas();
+		System.out.println("JUGADAS:" + jugadas);
 		// Ejecutar jugadas de recarga
 		for (Jugada jugada : jugadas) {
 			if (jugada.getTipo() == TipoAccion.RECARGA) {
@@ -336,7 +346,8 @@ public class Servidor {
 		for (Jugada jugada : jugadas) {
 			if (jugada.getTipo() == TipoAccion.ATAQUE) {
 				Jugador jugador = jugada.getJugador();
-				Jugador objetivo = jugada.getObjetivo();
+				
+				Jugador objetivo = partida.getClientes().get(jugada.getPosObjetivo()).getJugador();
 				jugador.gastarCargaAtaque();
 
 				// Si el objetivo no se esta defendiendo
@@ -346,6 +357,13 @@ public class Servidor {
 				}
 			}
 		}
+		System.out.println("JUGADAS A EJECUTAR:" + jugadas);
+		System.out.println("JUGADORES:" + partida.getJugadores());
+		List<Jugador> jugadores = new ArrayList<>();
+		for (Jugada jugada : jugadas) {
+			jugadores.add(jugada.getJugador());
+		}
+		partida.getRondas().add(ronda);
 	}
 
 	/**
@@ -353,8 +371,8 @@ public class Servidor {
 	 * clientes.
 	 */
 	public void enviarResultados(List<Jugador> jugadores) {
-		ServiciosComunicacion.enviarTCP(sockets, (List<Object>)(List<?>)jugadores);
-		ServiciosComunicacion.enviarTCP(sockets, (Object)jugadores);
+		ServiciosComunicacion.enviarTCP(sockets, (List<Object>) (List<?>) jugadores);
+		ServiciosComunicacion.enviarTCP(sockets, (Object) jugadores);
 	}
 
 	/**
@@ -367,6 +385,7 @@ public class Servidor {
 			if (jugador.getVida() <= 0) {
 				partida.getClientes().remove(i);
 				try {
+					System.out.println("CERRAR SOCKET: " + i);
 					sockets.get(i).close();
 				} catch (IOException ex) {
 					Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
@@ -381,10 +400,10 @@ public class Servidor {
 	 */
 	public void recibirJugadoresReconectados() {
 		// TODO Arreglar timeouts
-		
+
 		// Pool de hilos que crea un solo hilo nuevo
 		ExecutorService esBase = Executors.newSingleThreadExecutor();
-		
+
 		if (partida != null) {
 			// Hilo que escucha peticiones
 			Runnable hiloEscucha = new Runnable() {
@@ -395,6 +414,7 @@ public class Servidor {
 					this.cs = cs;
 					return this;
 				}
+
 				@Override
 				public void run() {
 					// Reconectar clientes
@@ -464,6 +484,7 @@ public class Servidor {
 				partida.getClientes().remove(i);
 				jugadas.remove(i);
 				try {
+					System.out.println("CERRAR SOCKET: " + i);
 					sockets.get(i).close();
 				} catch (IOException ex) {
 					Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);

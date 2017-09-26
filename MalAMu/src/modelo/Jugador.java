@@ -144,7 +144,7 @@ public class Jugador implements Serializable {
 	 */
 	public boolean gastarCargaAtaque() {
 		if (puedeAtacar()) {
-			this.cargaAtaque = Math.max(this.cargaAtaque - this.costoAtaque, 0);
+			this.cargaAtaque = this.cargaAtaque - this.costoAtaque;
 			return true;
 		}
 		return false;
@@ -159,7 +159,7 @@ public class Jugador implements Serializable {
 	 */
 	public boolean gastarCargaDefensa() {
 		if (puedeDefenderse()) {
-			this.cargaDefensa = Math.max(this.cargaDefensa - this.costoDefensa, 0);
+			this.cargaDefensa = this.cargaDefensa - this.costoDefensa;
 			return true;
 		}
 		return false;
@@ -174,10 +174,10 @@ public class Jugador implements Serializable {
 	 */
 	public boolean recargar() {
 		if (puedeRecargar()) {
-			if (this.cargaAtaque + this.cantidadRecargaAtaque <= this.cargaMaximaAtaque) {
-				this.cargaAtaque += this.cantidadRecargaAtaque;
-				if (this.cargaDefensa + this.cantidadRecargaDefensa <= this.cargaMaximaDefensa) {
-					this.cargaDefensa += this.cantidadRecargaDefensa;
+			if (this.cargaAtaque < this.cargaMaximaAtaque) {
+				this.cargaAtaque = Math.min(this.cargaAtaque + this.cantidadRecargaAtaque, this.cargaMaximaAtaque);
+				if (this.cargaDefensa < this.cargaMaximaDefensa) {
+					this.cargaDefensa = Math.min(this.cargaDefensa + this.cantidadRecargaDefensa, this.cargaMaximaDefensa);
 				}
 				return true;
 			} else {
@@ -222,7 +222,10 @@ public class Jugador implements Serializable {
 	 * puede recargar al menos una de las dos
 	 */
 	public boolean puedeRecargar() {
-		if (this.cargaAtaque + this.cantidadRecargaAtaque <= this.cargaMaximaAtaque || this.cargaDefensa + this.cantidadRecargaDefensa <= this.cargaMaximaDefensa) {
+		if (
+			this.cargaAtaque < this.cargaMaximaAtaque ||
+			this.cargaDefensa < this.cargaMaximaDefensa
+		) {
 			return true;
 		}
 		return false;
@@ -295,14 +298,11 @@ public class Jugador implements Serializable {
 	public void setCargaAtaque(int cargaAtaque) {
 		this.cargaAtaque = cargaAtaque;
 	}
-	
 
-	
 	@Override
 	public String toString() {
-		return "Jugador{" + "nombre=" + nombre + ", danoAtaque=" + danoAtaque + ", vida=" + vida + ", vidaMaxima=" + vidaMaxima + ", cargaAtaque=" + cargaAtaque + ", cargaDefensa=" + cargaDefensa + ", cargaMaximaAtaque=" + cargaMaximaAtaque + ", cargaMaximaDefensa=" + cargaMaximaDefensa + ", costoAtaque=" + costoAtaque + ", costoDefensa=" + costoDefensa + ", cantidadRecargaAtaque=" + cantidadRecargaAtaque + ", cantidadRecargaDefensa=" + cantidadRecargaDefensa + '}';
+		return "Jugador{" + "nombre=" + nombre + ", danoAtaque=" + danoAtaque + ", vida=" + vida + ", vidaMaxima=" + vidaMaxima + ", cargaAtaque=" + cargaAtaque + ", cargaDefensa=" + cargaDefensa + ", cargaMaximaAtaque=" + cargaMaximaAtaque + ", cargaMaximaDefensa=" + cargaMaximaDefensa + ", costoAtaque=" + costoAtaque + ", costoDefensa=" + costoDefensa + ", cantidadRecargaAtaque=" + cantidadRecargaAtaque + ", cantidadRecargaDefensa=" + cantidadRecargaDefensa + ", id=" + id + '}';
 	}
-
-
-
+	
+	
 }

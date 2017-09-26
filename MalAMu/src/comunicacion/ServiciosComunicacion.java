@@ -10,6 +10,8 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
@@ -31,6 +33,10 @@ public class ServiciosComunicacion {
 	 * @param mensaje mensaje que se va a enviar.
 	 */
 	public static void enviarTCP(Socket socket, Object mensaje) throws IOException {
+		if (socket == null) {
+			System.out.println("SOCKET ES NULL");
+			return;
+		}
 		try {
 			// Enviar el mensaje por el socket
 			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
@@ -54,6 +60,10 @@ public class ServiciosComunicacion {
 	 * @param mensaje mensaje que se va a enviar por todos los sockets.
 	 */
 	public static void enviarTCP(List<Socket> sockets, Object mensaje) {
+		System.out.println("TAMAÑO LISTA SOCKETS:" + sockets.size());
+		if (sockets == null || sockets.size() <= 0) {
+			return;
+		}
 		// Pool de hilos que maximiza uso del procesador
 		ExecutorService es = Executors.newWorkStealingPool(sockets.size());
 		
@@ -107,6 +117,10 @@ public class ServiciosComunicacion {
 	 * socket.
 	 */
 	public static void enviarTCP(List<Socket> sockets, List<Object> mensajes) {
+		System.out.println("TAMAÑO LISTA SOCKETS:" + sockets.size());
+		if (sockets == null || sockets.size() <= 0) {
+			return;
+		}
 		// Pool de hilos que maximiza uso del procesador
 		ExecutorService es = Executors.newWorkStealingPool(sockets.size());
 
@@ -249,6 +263,10 @@ public class ServiciosComunicacion {
 	 * @throws SocketTimeoutException cuando el timeout del socket se cumple antes de recibir un mensaje.
 	 */
 	public static Object recibirTCP(Socket socket) throws SocketTimeoutException, IOException {
+		if (socket == null) {
+			System.out.println("SOCKET ES NULL");
+			return null;
+		}
 		try {
 			// Leer objeto y retornar
 			ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
@@ -272,10 +290,15 @@ public class ServiciosComunicacion {
 	 */
 	public static List<Object> recibirTCP(List<Socket> sockets) {
 		// Lista donde se guardan los objetos recibidos
-		List<Object> recibidos = new ArrayList<>(sockets.size());
+		List<Object> recibidos = new ArrayList<>(Collections.nCopies(sockets.size(), null));
 		// Lista donde se guardan los objetos Future obtenidos del ExecutorService
 		List<Future<?>> tareas = new ArrayList<>();
 
+		System.out.println("TAMAÑO LISTA SOCKETS:" + sockets.size());
+		if (sockets == null || sockets.size() <= 0) {
+			return recibidos;
+		}
+		
 		// Pool de hilos que maximiza uso del procesador 
 		ExecutorService es = Executors.newWorkStealingPool(sockets.size());
 

@@ -148,16 +148,18 @@ public class Cliente implements Serializable {
 			try {
 				this.jugador = (Jugador)ServiciosComunicacion.recibirTCP(socket);
 				List<Jugador> resultadoJugadores = (List<Jugador>)ServiciosComunicacion.recibirTCP(socket);
-				resultadoJugadores.remove(this.jugador);
 				return resultadoJugadores;
-			} catch (SocketTimeoutException e) {
+			} catch (SocketTimeoutException ex) {
+				Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
 				this.cerrarConexion();
 				terminado = true;
 			} catch (IOException ex) {
 				Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-
-				// Iniciar conexión con el servidor
-				socket = ServiciosComunicacion.abrirSocketConServidor(direccionServidor);
+				try {
+					wait(1000);
+				} catch (InterruptedException ex1) {
+					Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex1);
+				}
 				terminado = false;
 			}
 		}
@@ -231,5 +233,11 @@ public class Cliente implements Serializable {
 	public void setSocket(Socket socket) {
 		this.socket = socket;
 	} 
-        
+
+	@Override
+	public String toString() {
+		return "Cliente{" + "direccionServidor=" + direccionServidor + ", tiempoUltimoMensaje=" + tiempoUltimoMensaje + ", duracionMaximaInactividadMS=" + duracionMaximaInactividadMS + ", jugador=" + jugador + ", ultimaJugada=" + ultimaJugada + ", ultimaRonda=" + ultimaRonda + ", codigoAcceso=" + codigoAcceso + ", socket=" + socket + '}';
+	}
+
+	
 }

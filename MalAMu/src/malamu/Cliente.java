@@ -1,10 +1,13 @@
 package malamu;
 
+import comunicacion.Conexion;
 import comunicacion.ServiciosComunicacion;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -34,10 +37,10 @@ public class Cliente implements Serializable {
 	private LocalDate tiempoUltimoMensaje;
 
 	/**
-	 * Valor que representa la mayor cantidad de tiempo que el cliente ha estado
-	 * inactivo.
+	 * Valor que representa la mayor cantidad de tiempo que el cliente espera a 
+	 * que el servidor envie un paquete.
 	 */
-	private Duration duracionMaximaInactividad;
+	private int duracionMaximaInactividadMS;
 
 	/**
 	 * Valor que representa el estado del jugador asociado al cliente.
@@ -62,20 +65,18 @@ public class Cliente implements Serializable {
         /**
          * Socket de conexion con el servidor,
          */
-        Socket socket;
+	Socket socket;
 
 	/**
 	 * Constructor de un cliente.
 	 *
 	 * @param direccion
 	 * @param jugador
-	 * @param jugadas
-	 * @param gui
 	 */
 	public Cliente(InetAddress direccion, Jugador jugador) {
 		this.direccion = direccion;
 		this.tiempoUltimoMensaje = null;
-		this.duracionMaximaInactividad = Duration.ofMillis(1000);
+		this.duracionMaximaInactividadMS = 1000;
 		this.jugador = jugador;
 		this.ultimaJugada = null;
 		this.ultimaRonda = null;
@@ -83,52 +84,56 @@ public class Cliente implements Serializable {
 	}
 
 	public static void main(String[] args) {
+		Cliente cliente;
 		try {
-			Cliente cliente = new Cliente(InetAddress.getByName("127.0.0.1"), new Jugador("David"));
-                        
-			cliente.iniciarPartida();
-                        
+			cliente = new Cliente(InetAddress.getByName("127.0.0.1"), new Jugador("David"));            
+			boolean terminado = false;
+			while (!terminado) {
+				try {
+					cliente.iniciarPartida();
+					terminado = true;
+				} catch (IOException ex1) {
+					Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex1);
+					terminado = false;
+				}
+			}
 		} catch (UnknownHostException ex) {
 			Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
 		}
-		return;
 	}
 
 	/**
 	 * Método que se invoca para unirse a una partida.
+	 * @throws java.io.IOException
 	 */
-	public void iniciarPartida() {
-		try {
-			// Iniciar conexión con el servidor
-			socket = ServiciosComunicacion.abrirSocketConServidor(InetAddress.getByName("127.0.0.1"));
-			
-			// Enviar objeto cliente al servidor
-			ServiciosComunicacion.enviarTCP(socket, this);
+	public void iniciarPartida() throws IOException{
+		// Iniciar conexión con el servidor
+		socket = ServiciosComunicacion.abrirSocketConServidor(InetAddress.getByName("127.0.0.1"));
 
-			// Recibir confirmación del servidor
-			Cliente recepcion = (Cliente) ServiciosComunicacion.recibirTCP(socket);
-			this.codigoAcceso = recepcion.getCodigoAcceso();
-			this.jugador = recepcion.getJugador();
-                        
-			System.out.println(this.codigoAcceso);
+		// Enviar objeto cliente al servidor
+		ServiciosComunicacion.enviarTCP(socket, this);
 
-			// Pedir confirmación al usuario
-			Scanner in = new Scanner(System.in);
-			String respuesta = in.nextLine();
-			responderConfirmacion(true);
-			cerrarConexion();
-                        
-		} catch (UnknownHostException ex) {
-			Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-		} catch (IOException ex) {
-			Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-		}
+		// Recibir confirmación y codigo de acceso del servidor
+		socket.setSoTimeout(duracionMaximaInactividadMS);
+		Cliente recepcion;
+		
+		recepcion =	(Cliente) ServiciosComunicacion.recibirTCP(socket);
+		this.codigoAcceso = recepcion.getCodigoAcceso();
+		this.jugador = recepcion.getJugador();
+		
+		System.out.println(this.codigoAcceso);
+
+		// Pedir confirmación al usuario
+		Scanner in = new Scanner(System.in);
+		String respuesta = in.nextLine();
+		responderConfirmacion(true);
 	}
 
 	/**
 	 * Método que se invoca para que el jugador envíe una jugada a la partida.
 	 */
 	public void enviarJugada() {
+		ServiciosComunicacion.enviarTCP(socket, "");
 
 	}
 
@@ -200,7 +205,9 @@ public class Cliente implements Serializable {
 	public Socket getSocket() {
 		return socket;
 	}
-        
-        
+
+	public void setSocket(Socket socket) {
+		this.socket = socket;
+	} 
         
 }

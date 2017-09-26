@@ -38,26 +38,27 @@ import modelo.TipoAccion;
  */
 public class FXMLDocumentController implements Initializable {
 
-	Cliente cliente;
-
+	protected Cliente cliente;
+	protected List<Jugador> jugadores;
+	
 	@FXML
-	private TableView<Jugador> tblPartida;
+	protected TableView<Jugador> tblPartida;
 	@FXML
-	private TableColumn<Jugador, String> tblColNombre;
+	protected TableColumn<Jugador, String> tblColNombre;
 	@FXML
-	private TableColumn<Jugador, String> tblColVida;
+	protected TableColumn<Jugador, String> tblColVida;
 	@FXML
-	private Label lblVida;
+	protected Label lblVida;
 	@FXML
-	private Label lblCargaAtaque;
+	protected Label lblCargaAtaque;
 	@FXML
-	private Label lblCargaDefensa;
+	protected Label lblCargaDefensa;
 	@FXML
-	private Button btnAtacar;
+	protected Button btnAtacar;
 	@FXML
-	private Button btnDefender;
+	protected Button btnDefender;
 	@FXML
-	private Button btnRecargar;
+	protected Button btnRecargar;
 
 
 	@FXML
@@ -142,29 +143,10 @@ public class FXMLDocumentController implements Initializable {
 	}
 
 	@Override
-	public void initialize(URL url, ResourceBundle rb) {
-		/**/
-		tblPartida.setEditable(false);
-		tblPartida.getItems().setAll();
-		try {
-			this.cliente = new Cliente(InetAddress.getByName("127.0.0.1"), new Jugador(""));
-		} catch (UnknownHostException ex) {
-			Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
-		}
-		inicializar();		
-	}
+	public void initialize(URL url, ResourceBundle rb) {}
 
-	private void actualizarTabla(List<Jugador> jugadores) {
-		final ObservableList<Jugador> data = FXCollections.observableArrayList();
-
-		tblColNombre.setMinWidth(100);
-		tblColVida.setMinWidth(100);
-		tblColNombre.setCellValueFactory(new PropertyValueFactory<>("Nombre"));
-		tblColVida.setCellValueFactory(new PropertyValueFactory<>("Vida"));
-		tblPartida.getItems().setAll(jugadores);
-	}
-
-	private void inicializar() {
+	protected void inicializar() {
+		System.out.println("Cliente Document: " + cliente);
 		lblVida.setText("" + cliente.getJugador().getVida() + "/" + cliente.getJugador().getVidaMaxima());
 		lblCargaAtaque.setText("" + cliente.getJugador().getCargaAtaque() + "/" + cliente.getJugador().getCargaMaximaAtaque());
 //		lblCargaDefensa.setText("" + cliente.getJugador().getCargaDefensa() + "/" + cliente.getJugador().getCargaMaximaDefensa());
@@ -191,4 +173,21 @@ public class FXMLDocumentController implements Initializable {
 		}
 	}
 
+	public void initData(Cliente cliente, List<Jugador> jugadores) {
+		this.cliente = cliente;
+		this.jugadores = jugadores;
+		tblPartida.setEditable(false);
+		tblPartida.getItems().setAll();
+		inicializar();
+	}
+
+	private void actualizarTabla(List<Jugador> jugadores) {
+		final ObservableList<Jugador> data = FXCollections.observableArrayList();
+
+		tblColNombre.setMinWidth(100);
+		tblColVida.setMinWidth(100);
+		tblColNombre.setCellValueFactory(new PropertyValueFactory<>("Nombre"));
+		tblColVida.setCellValueFactory(new PropertyValueFactory<>("Vida"));
+		tblPartida.getItems().setAll(jugadores);
+	}
 }

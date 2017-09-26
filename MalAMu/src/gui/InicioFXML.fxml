@@ -8,8 +8,10 @@
 
 <AnchorPane id="AnchorPane" prefHeight="186.0" prefWidth="194.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.InicioController">
    <children>
-      <Button fx:id="btnJugar" layoutX="71.0" layoutY="147.0" mnemonicParsing="false" onAction="#jugar" text="Jugar" />
-      <TextField fx:id="tfNombre" layoutX="19.0" layoutY="81.0" />
-      <Label layoutX="72.0" layoutY="64.0" text="Nombre" />
+      <Label layoutX="23.0" layoutY="25.0" prefHeight="25.0" prefWidth="149.0" text="Dirección IP Servidor" />
+      <TextField fx:id="tfIp" layoutX="23.0" layoutY="50.0" text="127.0.0.1" />
+      <Label layoutX="23.0" layoutY="77.0" prefHeight="25.0" prefWidth="149.0" text="Nombre Jugador" />
+      <TextField fx:id="tfNombre" layoutX="23.0" layoutY="102.0" text="davl" />
+      <Button fx:id="btnJugar" layoutX="23.0" layoutY="137.0" mnemonicParsing="false" onAction="#jugar" text="Jugar" />
    </children>
 </AnchorPane>

@@ -139,7 +139,7 @@ public class Servidor {
 	public static void main(String[] args) {
 		Servidor servidor;
 		try {
-			servidor = new Servidor(InetAddress.getByName("127.0.0.1"), 4, 12, null, 1000, null, 1000);
+			servidor = new Servidor(InetAddress.getByName("127.0.0.1"), 4, 12, null, 5000, null, 5000);
 			while (true) {
 				servidor.iniciarPartida();
 			}
@@ -231,9 +231,8 @@ public class Servidor {
 
 		// Generar lista de jugadores
 		List<Jugador> jugadores = partida.getJugadores();
-
-		// Enviar lista inicial de jugadores
-		ServiciosComunicacion.enviarTCP(sockets, jugadores);
+		
+		enviarResultados(jugadores);
 
 		while (!partida.getClientes().isEmpty()) {
 			
@@ -354,7 +353,7 @@ public class Servidor {
 	 * clientes.
 	 */
 	public void enviarResultados(List<Jugador> jugadores) {
-		ServiciosComunicacion.enviarTCP(sockets, jugadores);
+		ServiciosComunicacion.enviarTCP(sockets, (List<Object>)(List<?>)jugadores);
 		ServiciosComunicacion.enviarTCP(sockets, (Object)jugadores);
 	}
 
@@ -385,63 +384,65 @@ public class Servidor {
 		
 		// Pool de hilos que crea un solo hilo nuevo
 		ExecutorService esBase = Executors.newSingleThreadExecutor();
+		
+		if (partida != null) {
+			// Hilo que escucha peticiones
+			Runnable hiloEscucha = new Runnable() {
+				private List<Cliente> cs;
 
-		// Hilo que escucha peticiones
-		Runnable hiloEscucha = new Runnable() {
-			private List<Cliente> cs;
-			
-			// Permite inicializar la clase anónima dado que java no permite definir un constructor
-			private Runnable init(List<Cliente> cs) {
-				this.cs = cs;
-				return this;
-			}
-			@Override
-			public void run() {
-				// Reconectar clientes
-				while (!Thread.interrupted()) {
-					try {
-						Conexion conexion = null;
-						
-						// Sacar de la cola
-						System.out.println("Sacando.");
-						conexion = colaClientes.take();
-						System.out.println("Sacado.");
-						
-						Cliente cliente = (Cliente) conexion.objeto;
-						Socket socket = conexion.socket;
-						
+				// Permite inicializar la clase anónima dado que java no permite definir un constructor
+				private Runnable init(List<Cliente> cs) {
+					this.cs = cs;
+					return this;
+				}
+				@Override
+				public void run() {
+					// Reconectar clientes
+					while (!Thread.interrupted()) {
 						try {
-							// Ajustar timeout del socket
-							socket.setSoTimeout(duracionMaximaInactividadMS);
-							
-							// Buscar código de acceso de cliente
-							boolean clienteValido = false;
-							int indCliente = -1;
-							for (int i = 0; i < cs.size(); i++) {
-								if (cs.get(i).getCodigoAcceso().equals(cliente.getCodigoAcceso())) {
-									if (cs.get(i).getJugador().equals(cliente.getJugador())) {
-										indCliente = i;
-										clienteValido = true;
-									} else {
-										clienteValido = false;
+							Conexion conexion = null;
+
+							// Sacar de la cola
+							System.out.println("Sacando.");
+							conexion = colaClientes.take();
+							System.out.println("Sacado.");
+
+							Cliente cliente = (Cliente) conexion.objeto;
+							Socket socket = conexion.socket;
+
+							try {
+								// Ajustar timeout del socket
+								socket.setSoTimeout(duracionMaximaInactividadMS);
+
+								// Buscar código de acceso de cliente
+								boolean clienteValido = false;
+								int indCliente = -1;
+								for (int i = 0; i < cs.size(); i++) {
+									if (cs.get(i).getCodigoAcceso().equals(cliente.getCodigoAcceso())) {
+										if (cs.get(i).getJugador().equals(cliente.getJugador())) {
+											indCliente = i;
+											clienteValido = true;
+										} else {
+											clienteValido = false;
+										}
+										break;
 									}
-									break;
 								}
+
+								if (clienteValido) {
+									// Guardar la conexión
+									sockets.set(indCliente, socket);
+								}
+							} catch (SocketException ex) {
+								Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
 							}
-							
-							if (clienteValido) {
-								// Guardar la conexión
-								sockets.set(indCliente, socket);
-							}
-						} catch (SocketException ex) {
+						} catch (InterruptedException ex) {
 							Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
 						}
-					} catch (InterruptedException ex) {
-						Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
 					}
 				}
-			}
-		}.init(partida.getClientes());
+			}.init(partida.getClientes());
+		}
 	}
 
 	/**

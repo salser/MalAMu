@@ -21,7 +21,7 @@ public class MalAMu {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    /*public static void main(String[] args) {
         List<Jugador> jugadores = new ArrayList();
         Jugador j1 = new Jugador("Henry");
         Jugador j2 = new Jugador("David");
@@ -119,5 +119,5 @@ public class MalAMu {
             }
         }
     }
-
+*/
 }

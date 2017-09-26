@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="186.0" prefWidth="194.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.FXMLConfirmacionController">
+   <children>
+      <Label layoutX="23.0" layoutY="25.0" prefHeight="25.0" prefWidth="149.0" text="Partida encontrada!" />
+      <Label layoutX="23.0" layoutY="50.0" prefHeight="25.0" prefWidth="149.0" text="¿Desea jugar?" />
+      <Button fx:id="btnSi" layoutX="23.0" layoutY="137.0" mnemonicParsing="false" onAction="#jugar" text="Si" />
+      <Button fx:id="btnNo" layoutX="139.0" layoutY="137.0" mnemonicParsing="false" onAction="#salir" text="No" />
+   </children>
+</AnchorPane>

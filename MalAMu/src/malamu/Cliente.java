@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import modelo.Jugada;
@@ -56,8 +57,12 @@ public class Cliente implements Serializable {
 	/**
 	 * Código único que le otorga el servidor a cada cliente.
 	 */
-	private String codigoAcceso;
+	private UUID codigoAcceso;
         
+        /**
+         * Socket de conexion con el servidor,
+         */
+        Socket socket;
 
 	/**
 	 * Constructor de un cliente.
@@ -80,7 +85,9 @@ public class Cliente implements Serializable {
 	public static void main(String[] args) {
 		try {
 			Cliente cliente = new Cliente(InetAddress.getByName("127.0.0.1"), new Jugador("David"));
+                        
 			cliente.iniciarPartida();
+                        
 		} catch (UnknownHostException ex) {
 			Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
 		}
@@ -93,28 +100,24 @@ public class Cliente implements Serializable {
 	public void iniciarPartida() {
 		try {
 			// Iniciar conexión con el servidor
-			Socket socket = ServiciosComunicacion.abrirSocketConServidor(InetAddress.getByName("127.0.0.1"));
+			socket = ServiciosComunicacion.abrirSocketConServidor(InetAddress.getByName("127.0.0.1"));
 
 			// Enviar objeto cliente al servidor
 			ServiciosComunicacion.enviarTCP(socket, this);
 
 			// Recibir confirmación del servidor
-			String pedidoConfirmacion = (String) ServiciosComunicacion.recibirTCP(socket);
-			System.out.println(pedidoConfirmacion);
+			Cliente recepcion = (Cliente) ServiciosComunicacion.recibirTCP(socket);
+                        this.codigoAcceso = recepcion.getCodigoAcceso();
+                        this.jugador = recepcion.getJugador();
+                        
+			System.out.println(this.codigoAcceso);
 
 			// Pedir confirmación al usuario
 			Scanner in = new Scanner(System.in);
 			String respuesta = in.nextLine();
-			if (respuesta.equals("Y")) {
-				// Responder al servidor
-				ServiciosComunicacion.enviarTCP(socket, this);
-
-				// Recibir jugadores
-				List<Jugador> jugadores = (List<Jugador>) ServiciosComunicacion.recibirTCP(socket);
-				System.out.println("jugadores: " + jugadores);
-				// Enviar jugada
-			}
-			socket.close();
+                        responderConfirmacion(true);
+                        cerrarConexion();
+                        
 		} catch (UnknownHostException ex) {
 			Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
 		} catch (IOException ex) {
@@ -144,8 +147,29 @@ public class Cliente implements Serializable {
 	 * @param res Decisión del jugador.
 	 */
 	public void responderConfirmacion(boolean res) {
+            if (res) {
+                // Responder al servidor
+                ServiciosComunicacion.enviarTCP(socket, this);
 
+                // Recibir jugadores
+                List<Jugador> jugadores = (List<Jugador>) ServiciosComunicacion.recibirTCP(socket);
+                System.out.println("jugadores: " + jugadores);
+                // Enviar jugada
+
+            }
 	}
+        
+        public void cerrarConexion(){
+            if(socket != null)
+            {
+                try {    
+                    socket.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+                
 
 	public Jugador getJugador() {
 		return jugador;
@@ -162,4 +186,15 @@ public class Cliente implements Serializable {
 	public InetAddress getDireccion() {
 		return direccion;
 	}
+
+        public UUID getCodigoAcceso() {
+            return codigoAcceso;
+        }
+
+        public Socket getSocket() {
+            return socket;
+        }
+        
+        
+        
 }

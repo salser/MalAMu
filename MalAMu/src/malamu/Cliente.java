@@ -101,22 +101,22 @@ public class Cliente implements Serializable {
 		try {
 			// Iniciar conexión con el servidor
 			socket = ServiciosComunicacion.abrirSocketConServidor(InetAddress.getByName("127.0.0.1"));
-
+			
 			// Enviar objeto cliente al servidor
 			ServiciosComunicacion.enviarTCP(socket, this);
 
 			// Recibir confirmación del servidor
 			Cliente recepcion = (Cliente) ServiciosComunicacion.recibirTCP(socket);
-                        this.codigoAcceso = recepcion.getCodigoAcceso();
-                        this.jugador = recepcion.getJugador();
+			this.codigoAcceso = recepcion.getCodigoAcceso();
+			this.jugador = recepcion.getJugador();
                         
 			System.out.println(this.codigoAcceso);
 
 			// Pedir confirmación al usuario
 			Scanner in = new Scanner(System.in);
 			String respuesta = in.nextLine();
-                        responderConfirmacion(true);
-                        cerrarConexion();
+			responderConfirmacion(true);
+			cerrarConexion();
                         
 		} catch (UnknownHostException ex) {
 			Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
@@ -159,16 +159,16 @@ public class Cliente implements Serializable {
             }
 	}
         
-        public void cerrarConexion(){
-            if(socket != null)
-            {
-                try {    
-                    socket.close();
-                } catch (IOException ex) {
-                    Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        }
+	public void cerrarConexion(){
+		if(socket != null)
+		{
+			try {    
+				socket.close();
+			} catch (IOException ex) {
+				Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
+			}
+		}
+	}
                 
 
 	public Jugador getJugador() {
@@ -197,13 +197,9 @@ public class Cliente implements Serializable {
 		return direccion;
 	}
 
-        public UUID getCodigoAcceso() {
-            return codigoAcceso;
-        }
-
-        public Socket getSocket() {
-            return socket;
-        }
+	public Socket getSocket() {
+		return socket;
+	}
         
         
         

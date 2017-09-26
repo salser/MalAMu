@@ -109,7 +109,9 @@ public class Cliente implements Serializable {
 				// Recibir jugadores
 				List<Jugador> jugadores = (List<Jugador>) ServiciosComunicacion.recibirTCP(socket);
 
+				System.out.println("jugadores: " + jugadores);
 				// Enviar jugada
+				
 			}
 		} catch (UnknownHostException ex) {
 			Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);

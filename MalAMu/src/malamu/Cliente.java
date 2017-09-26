@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import modelo.Jugada;
@@ -55,7 +56,7 @@ public class Cliente implements Serializable {
 	/**
 	 * Código único que le otorga el servidor a cada cliente.
 	 */
-	private String codigoAcceso;
+	private UUID codigoAcceso;
 
 	/**
 	 * Constructor de un cliente.
@@ -150,6 +151,16 @@ public class Cliente implements Serializable {
 	public void setJugador(Jugador jugador) {
 		this.jugador = jugador;
 	}
+
+	public UUID getCodigoAcceso() {
+		return codigoAcceso;
+	}
+
+	public void setCodigoAcceso(UUID codigoAcceso) {
+		this.codigoAcceso = codigoAcceso;
+	}
+	
+	
 
 	public Ronda getUltimaRonda() {
 		return ultimaRonda;

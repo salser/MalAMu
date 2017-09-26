@@ -147,6 +147,12 @@ public class Servidor {
 			Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
 		}
 	}
+	/**
+	 * 
+	 */
+	public void recibirJugadas(){
+		
+	}
 
 	/**
 	 * Pone al servidor a escuchar peticiones de inicio de partida.

@@ -1,6 +1,8 @@
 package modelo;
 
 import java.io.Serializable;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Define los atributos de un jugador, desde su nombre hasta la cantidad máxima
@@ -63,10 +65,10 @@ public class Jugador implements Serializable {
 	 */
 	private int cantidadRecargaDefensa;
         
-        /**
-         * Identificador de la posicion del cliente en el registro del servidor
-         */
-        private int posicionServidor;
+	/**
+	* Identificador de la posicion del cliente en el registro del servidor
+	*/
+	private UUID id;
 
 	/**
 	 * Crea un jugador con un nombre específico y parámetros por defecto.
@@ -86,7 +88,7 @@ public class Jugador implements Serializable {
 		this.costoDefensa = 1;
 		this.vidaMaxima = 100;
 		this.vida = 100;
-                this.posicionServidor = -1;
+		this.id = null;
                 
 	}
 
@@ -119,7 +121,7 @@ public class Jugador implements Serializable {
 		this.costoDefensa = costoDefensa;
 		this.cantidadRecargaAtaque = cantidadRecargaAtaque;
 		this.cantidadRecargaDefensa = cantidadRecargaDefensa;
-                this.posicionServidor = -1;
+		this.id = null;
 	}
 
 	/**
@@ -237,22 +239,40 @@ public class Jugador implements Serializable {
 	public int getDanoAtaque() {
 		return danoAtaque;
 	}
+	
+	public UUID getId() {
+		return id;
+	}
 
-        public void setPosicionServidor(int posicionServidor) {
-            this.posicionServidor = posicionServidor;
-        }
+	public void setId(UUID id) {
+		this.id = id;
+	}            
 
-        public int getPosicionServidor() {
-            return posicionServidor;
-        }
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		final Jugador other = (Jugador) obj;
+		if (!Objects.equals(this.id, other.id)) {
+			return false;
+		}
+		return true;
+	}
         
-        
-        
-        
+	
 
 	@Override
 	public String toString() {
 		return "Jugador{" + "nombre=" + nombre + ", danoAtaque=" + danoAtaque + ", vida=" + vida + ", vidaMaxima=" + vidaMaxima + ", cargaAtaque=" + cargaAtaque + ", cargaDefensa=" + cargaDefensa + ", cargaMaximaAtaque=" + cargaMaximaAtaque + ", cargaMaximaDefensa=" + cargaMaximaDefensa + ", costoAtaque=" + costoAtaque + ", costoDefensa=" + costoDefensa + ", cantidadRecargaAtaque=" + cantidadRecargaAtaque + ", cantidadRecargaDefensa=" + cantidadRecargaDefensa + '}';
 	}
+
+
 
 }

@@ -124,7 +124,7 @@ public class Cliente implements Serializable {
 	/**
 	 * Método que se invoca para que el jugador envíe una jugada a la partida.
 	 */
-	public void enviarJugada() {
+	public void enviarJugada(Jugada jugada) {
 
 	}
 
@@ -132,8 +132,8 @@ public class Cliente implements Serializable {
 	 * Método que se invoca para solicitar a la partida los resultados de la
 	 * ronda anterior.
 	 */
-	public void recibirResultados() {
-
+	public List<Jugador> recibirResultados() {
+		return null;
 	}
 
 	/**

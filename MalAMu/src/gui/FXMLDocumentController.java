@@ -80,10 +80,6 @@ public class FXMLDocumentController implements Initializable {
 
 			// Actualizar vista jugador
 			actualizarCamposJugador();
-			
-			btnAtacar.setDisable(false);
-			btnDefender.setDisable(false);
-			btnRecargar.setDisable(false);
 		} else {
 			Alert alert = new Alert(Alert.AlertType.INFORMATION);
 			alert.setTitle("El ataque no tiene objetivo");
@@ -110,10 +106,6 @@ public class FXMLDocumentController implements Initializable {
 
 		// Actualizar vista jugador
 		actualizarCamposJugador();
-		
-		btnAtacar.setDisable(false);
-		btnDefender.setDisable(false);
-		btnRecargar.setDisable(false);
 	}
 
 	@FXML
@@ -132,10 +124,6 @@ public class FXMLDocumentController implements Initializable {
 
 		// Actualizar vista jugador
 		actualizarCamposJugador();
-		
-		btnAtacar.setDisable(false);
-		btnDefender.setDisable(false);
-		btnRecargar.setDisable(false);
 	}
 
 	@Override
@@ -158,15 +146,11 @@ public class FXMLDocumentController implements Initializable {
 		lblVida.setText("" + jugador.getVida() + "/" + jugador.getVidaMaxima());
 		lblCargaAtaque.setText("" + jugador.getCargaAtaque() + "/" + jugador.getCargaMaximaAtaque());
 		lblCargaDefensa.setText("" + jugador.getCargaDefensa() + "/" + jugador.getCargaMaximaDefensa());
-		if (!this.cliente.getJugador().puedeAtacar()) {
-			btnAtacar.setDisable(true);
-		}
-		if (!this.cliente.getJugador().puedeDefenderse()) {
-			btnDefender.setDisable(true);
-		}
-		if (!this.cliente.getJugador().puedeRecargar()) {
-			btnRecargar.setDisable(true);
-		}
+                
+                btnDefender.setDisable(!this.cliente.getJugador().puedeDefenderse());
+                btnAtacar.setDisable(!this.cliente.getJugador().puedeAtacar());
+                btnRecargar.setDisable(!this.cliente.getJugador().puedeRecargar());
+		
 	}
 
 	private void actualizarTabla() {

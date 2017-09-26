@@ -62,6 +62,11 @@ public class Jugador implements Serializable {
 	 * Indica cuanto se recupera de carga de defensa al recargar.
 	 */
 	private int cantidadRecargaDefensa;
+        
+        /**
+         * Identificador de la posicion del cliente en el registro del servidor
+         */
+        private int posicionServidor;
 
 	/**
 	 * Crea un jugador con un nombre específico y parámetros por defecto.
@@ -81,6 +86,8 @@ public class Jugador implements Serializable {
 		this.costoDefensa = 1;
 		this.vidaMaxima = 100;
 		this.vida = 100;
+                this.posicionServidor = -1;
+                
 	}
 
 	/**
@@ -112,6 +119,7 @@ public class Jugador implements Serializable {
 		this.costoDefensa = costoDefensa;
 		this.cantidadRecargaAtaque = cantidadRecargaAtaque;
 		this.cantidadRecargaDefensa = cantidadRecargaDefensa;
+                this.posicionServidor = -1;
 	}
 
 	/**
@@ -229,6 +237,18 @@ public class Jugador implements Serializable {
 	public int getDanoAtaque() {
 		return danoAtaque;
 	}
+
+        public void setPosicionServidor(int posicionServidor) {
+            this.posicionServidor = posicionServidor;
+        }
+
+        public int getPosicionServidor() {
+            return posicionServidor;
+        }
+        
+        
+        
+        
 
 	@Override
 	public String toString() {

@@ -16,6 +16,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -185,15 +186,21 @@ public class Servidor {
 					conexion = colaClientes.take();
 				}
 				System.out.println("Sacado.");
-
+				
 				Cliente cliente = (Cliente) conexion.objeto;
 				Socket socket = conexion.socket;
 
+				// Generar código único de acceso para el cliente.
+				UUID codigo = UUID.randomUUID();
+				cliente.setCodigoAcceso(codigo);
+		
 				// Si confirmó correctamente
 				if (pedirConfirmacion(cliente, socket)) {
 					// Limpiar objeto cliente
 					cliente = new Cliente(cliente.getDireccion(), new Jugador(cliente.getJugador().getNombre()));
-
+					cliente.getJugador()
+					cliente.setCodigoAcceso(codigo);
+					
 					// Guardar la conexión
 					sockets.add(socket);
 					clientes.add(cliente);
@@ -227,7 +234,7 @@ public class Servidor {
 	 */
 	public boolean pedirConfirmacion(Cliente cliente, Socket socket) {
 		// Pedir confirmación al cliente
-		ServiciosComunicacion.enviarTCP(socket, "¿Desea jugar?");
+		ServiciosComunicacion.enviarTCP(socket, cliente);
 		cliente = (Cliente) ServiciosComunicacion.recibirTCP(socket);
 
 		// Resultado confirmación

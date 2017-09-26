@@ -198,7 +198,7 @@ public class Servidor {
 				if (pedirConfirmacion(cliente, socket)) {
 					// Limpiar objeto cliente
 					cliente = new Cliente(cliente.getDireccion(), new Jugador(cliente.getJugador().getNombre()));
-					cliente.getJugador()
+					cliente.getJugador();
 					cliente.setCodigoAcceso(codigo);
 					
 					// Guardar la conexión

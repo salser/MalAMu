@@ -25,50 +25,12 @@ public class ServiciosComunicacion {
 	public static final int PUERTO = 7896;
 
 	/**
-	 * * Envía un mensaje y luego recibe una respuesta.
-	 *
-	 * @param socket socket mediante el cual se realiza la comunicación.
-	 * @param mensaje mensaje que se envía como petición.
-	 *
-	 * @return objeto recibido como respuesta.
-	 * 
-	 * @throws SocketTimeoutException cuando el timeout del socket se cumple antes de recibir un mensaje.
-	 */
-	public static Object enviarYRecibirRespuestaTCP(Socket socket, Object mensaje) throws SocketTimeoutException {
-		// Envía petición
-		try {
-			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-			out.writeObject(mensaje);
-			System.out.println("Received: " + mensaje);
-		} catch (UnknownHostException e) {
-			System.out.println("Socket:" + e.getMessage());
-		} catch (EOFException e) {
-			System.out.println("EOF:" + e.getMessage());
-		} catch (IOException e) {
-			System.out.println("readline:" + e.getMessage());
-		}
-
-		// Recibe respuesta
-		try {
-			ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-			return in.readObject();
-		} catch (SocketTimeoutException e) {
-			throw e;
-		} catch (IOException e) {
-			System.out.println("Connection:" + e.getMessage());
-		} catch (ClassNotFoundException ex) {
-			Logger.getLogger(ServiciosComunicacion.class.getName()).log(Level.SEVERE, null, ex);
-		}
-		return null;
-	}
-
-	/**
 	 * Envía un objeto serializado mediante un socket.
 	 *
 	 * @param socket socket mediante el cual se va a enviar el mensaje.
 	 * @param mensaje mensaje que se va a enviar.
 	 */
-	public static void enviarTCP(Socket socket, Object mensaje) {
+	public static void enviarTCP(Socket socket, Object mensaje) throws IOException {
 		try {
 			// Enviar el mensaje por el socket
 			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
@@ -81,7 +43,7 @@ public class ServiciosComunicacion {
 		} catch (EOFException e) {
 			System.out.println("EOF:" + e.getMessage());
 		} catch (IOException e) {
-			System.out.println("readline:" + e.getMessage());
+			throw e;
 		}
 	}
 
@@ -286,7 +248,7 @@ public class ServiciosComunicacion {
 	 * 
 	 * @throws SocketTimeoutException cuando el timeout del socket se cumple antes de recibir un mensaje.
 	 */
-	public static Object recibirTCP(Socket socket) throws SocketTimeoutException {
+	public static Object recibirTCP(Socket socket) throws SocketTimeoutException, IOException {
 		try {
 			// Leer objeto y retornar
 			ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
@@ -294,7 +256,7 @@ public class ServiciosComunicacion {
 		} catch (SocketTimeoutException e) {
 			throw e;
 		} catch (IOException e) {
-			System.out.println("Connection:" + e.getMessage());
+			throw e;
 		} catch (ClassNotFoundException ex) {
 			Logger.getLogger(ServiciosComunicacion.class.getName()).log(Level.SEVERE, null, ex);
 		}

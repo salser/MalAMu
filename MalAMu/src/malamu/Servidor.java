@@ -147,12 +147,6 @@ public class Servidor {
 			Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
 		}
 	}
-	/**
-	 * 
-	 */
-	public void recibirJugadas(){
-		
-	}
 
 	/**
 	 * Pone al servidor a escuchar peticiones de inicio de partida.
@@ -212,14 +206,14 @@ public class Servidor {
 					
 					// Generar código único de acceso para el cliente
 					UUID codigo = UUID.randomUUID();
+					UUID codigoJugador = UUID.randomUUID();
 					cliente.setCodigoAcceso(codigo);
-					cliente.getJugador().setPosicionServidor(clientes.size());
 
 					// Si confirmó correctamente
 					if (pedirConfirmacion(cliente, socket)) {
 						// Limpiar objeto cliente
-						cliente = new Cliente(cliente.getDireccion(), new Jugador(cliente.getJugador().getNombre()));
-						cliente.getJugador().setPosicionServidor(clientes.size());
+						cliente = new Cliente(cliente.getDireccionServidor(), new Jugador(cliente.getJugador().getNombre()));
+						cliente.getJugador().setId(codigoJugador);
 						cliente.setCodigoAcceso(codigo);
 
 						// Guardar la conexión
@@ -241,10 +235,22 @@ public class Servidor {
 		// Enviar lista inicial de jugadores
 		ServiciosComunicacion.enviarTCP(sockets, jugadores);
 
-		Ronda ronda = iniciarRonda();
-		ejecutarRonda(ronda);
-		enviarResultados();
-		desconectarMuertos();
+		while (!partida.getClientes().isEmpty()) {
+			
+			Ronda ronda = iniciarRonda();
+			
+			ejecutarRonda(ronda);
+			
+			// Actualizar lista de jugadores
+			jugadores = partida.getJugadores();
+			
+			enviarResultados(jugadores);
+			
+			desconectarMuertos();
+			
+			// Actualizar lista de jugadores
+			jugadores = partida.getJugadores();
+		}
 	}
 
 	/**
@@ -257,17 +263,21 @@ public class Servidor {
 	 * @return true si confirmó correctamente, false de lo contrario.
 	 */
 	public boolean pedirConfirmacion(Cliente cliente, Socket socket) {
-		// Pedir confirmación al cliente
-		ServiciosComunicacion.enviarTCP(socket, cliente);
+		// TODO revisar si soporta que el cliente se reconecte
 		try {
+			// Pedir confirmación al cliente
+			ServiciosComunicacion.enviarTCP(socket, cliente);
 			cliente = (Cliente) ServiciosComunicacion.recibirTCP(socket);
 		} catch (SocketTimeoutException ex) {
+			Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+			return false;
+		} catch (IOException ex) {
 			Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
 			return false;
 		}
 
 		// Resultado confirmación
-		return cliente != null && cliente.getDireccion() != null && cliente.getJugador() != null && cliente.getJugador().getNombre() != null;
+		return cliente != null && cliente.getDireccionServidor() != null && cliente.getJugador() != null && cliente.getJugador().getNombre() != null;
 	}
 
 	/**
@@ -278,9 +288,21 @@ public class Servidor {
 	public Ronda iniciarRonda() {
 		Ronda ronda = new Ronda();
 
+		List<Cliente> clientes = (List<Cliente>) (List<?>) ServiciosComunicacion.recibirTCP(sockets);
+		
 		// Recibir una jugada de cada cliente
 		List<Jugada> jugadas = (List<Jugada>) (List<?>) ServiciosComunicacion.recibirTCP(sockets);
+		
+		// Para cada jugada...
+		for (int i = 0; i < jugadas.size(); i++) {
+			// ...validar si el jugador que hace la jugada es el mismo del cliente que la envió.
+			if (jugadas.get(i) != null && (!clientes.get(i).getCodigoAcceso().equals(partida.getClientes().get(i).getCodigoAcceso()) || !jugadas.get(i).getJugador().equals(partida.getClientes().get(i).getJugador()))) {
+				jugadas.set(i, null);
+			}
+		}
+		
 		jugadas = matarDormidos(jugadas);
+		
 		ronda.setJugadas(jugadas);
 
 		return ronda;
@@ -331,8 +353,9 @@ public class Servidor {
 	 * Envía última ronda y estado actual de los jugadores en juego a los
 	 * clientes.
 	 */
-	public void enviarResultados() {
-		//TODO
+	public void enviarResultados(List<Jugador> jugadores) {
+		ServiciosComunicacion.enviarTCP(sockets, jugadores);
+		ServiciosComunicacion.enviarTCP(sockets, (Object)jugadores);
 	}
 
 	/**
@@ -358,53 +381,67 @@ public class Servidor {
 	 * Hace que el servidor maneje peticiones de reconexión.
 	 */
 	public void recibirJugadoresReconectados() {
+		// TODO Arreglar timeouts
+		
 		// Pool de hilos que crea un solo hilo nuevo
 		ExecutorService esBase = Executors.newSingleThreadExecutor();
 
 		// Hilo que escucha peticiones
-		Runnable hiloEscucha = () -> {
-			// Reconectar clientes
-			while (!Thread.interrupted()) {
-				try {
-					Conexion conexion = null;
-					
-					// Sacar de la cola
-					System.out.println("Sacando.");
-					conexion = colaClientes.take();
-					System.out.println("Sacado.");
-
-					
-					Cliente cliente = (Cliente) conexion.objeto;
-					Socket socket = conexion.socket;
-					
+		Runnable hiloEscucha = new Runnable() {
+			private List<Cliente> cs;
+			
+			// Permite inicializar la clase anónima dado que java no permite definir un constructor
+			private Runnable init(List<Cliente> cs) {
+				this.cs = cs;
+				return this;
+			}
+			@Override
+			public void run() {
+				// Reconectar clientes
+				while (!Thread.interrupted()) {
 					try {
-						socket.setSoTimeout(duracionMaximaInactividadMS);
+						Conexion conexion = null;
 						
-						// Generar código único de acceso para el cliente.
-						UUID codigo = UUID.randomUUID();
-						cliente.setCodigoAcceso(codigo);
-						cliente.getJugador().setPosicionServidor(clientes.size());
-
-						// Si confirmó correctamente
-						if (pedirConfirmacion(cliente, socket)) {
-							// Limpiar objeto cliente
-							cliente = new Cliente(cliente.getDireccion(), new Jugador(cliente.getJugador().getNombre()));
-							cliente.getJugador().setPosicionServidor(clientes.size());
-							cliente.setCodigoAcceso(codigo);
-
-							// Guardar la conexión
-							sockets.add(socket);
-							clientes.add(cliente);
-							numConfirmados++;
+						// Sacar de la cola
+						System.out.println("Sacando.");
+						conexion = colaClientes.take();
+						System.out.println("Sacado.");
+						
+						Cliente cliente = (Cliente) conexion.objeto;
+						Socket socket = conexion.socket;
+						
+						try {
+							// Ajustar timeout del socket
+							socket.setSoTimeout(duracionMaximaInactividadMS);
+							
+							// Buscar código de acceso de cliente
+							boolean clienteValido = false;
+							int indCliente = -1;
+							for (int i = 0; i < cs.size(); i++) {
+								if (cs.get(i).getCodigoAcceso().equals(cliente.getCodigoAcceso())) {
+									if (cs.get(i).getJugador().equals(cliente.getJugador())) {
+										indCliente = i;
+										clienteValido = true;
+									} else {
+										clienteValido = false;
+									}
+									break;
+								}
+							}
+							
+							if (clienteValido) {
+								// Guardar la conexión
+								sockets.set(indCliente, socket);
+							}
+						} catch (SocketException ex) {
+							Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
 						}
-					} catch (SocketException ex) {
+					} catch (InterruptedException ex) {
 						Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
 					}
-				} catch (InterruptedException ex) {
-					Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
 				}
 			}
-		}
+		}.init(partida.getClientes());
 	}
 
 	/**

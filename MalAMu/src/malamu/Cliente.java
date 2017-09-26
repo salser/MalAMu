@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.time.LocalDate;
 import java.util.List;
@@ -24,9 +25,9 @@ import modelo.Ronda;
 public class Cliente implements Serializable {
 
 	/**
-	 * Atributo que representa la dirección IP de un cliente.
+	 * Atributo que representa la dirección IP del servidor con el que se comunica este cliente.
 	 */
-	private InetAddress direccion;
+	private InetAddress direccionServidor;
 	/**
 	 * Valor en el que se almacena la última.
 	 */
@@ -66,11 +67,11 @@ public class Cliente implements Serializable {
 	/**
 	 * Constructor de un cliente.
 	 *
-	 * @param direccion
-	 * @param jugador
+	 * @param direccionServidor direccion IP del servidor con que se conecta este cliente.
+	 * @param jugador jugador que maneja este cliente.
 	 */
 	public Cliente(InetAddress direccion, Jugador jugador) {
-		this.direccion = direccion;
+		this.direccionServidor = direccionServidor;
 		this.tiempoUltimoMensaje = null;
 		this.duracionMaximaInactividadMS = 1000;
 		this.jugador = jugador;
@@ -102,9 +103,9 @@ public class Cliente implements Serializable {
 	 * Método que se invoca para unirse a una partida.
 	 * @throws java.io.IOException
 	 */
-	public void iniciarPartida() throws IOException{
+	public void iniciarPartida() throws IOException {
 		// Iniciar conexión con el servidor
-		socket = ServiciosComunicacion.abrirSocketConServidor(InetAddress.getByName("127.0.0.1"));
+		socket = ServiciosComunicacion.abrirSocketConServidor(direccionServidor);
 
 		// Enviar objeto cliente al servidor
 		ServiciosComunicacion.enviarTCP(socket, this);
@@ -122,6 +123,7 @@ public class Cliente implements Serializable {
 		// Pedir confirmación al usuario
 		Scanner in = new Scanner(System.in);
 		String respuesta = in.nextLine();
+		
 		responderConfirmacion(true);
 	}
 
@@ -130,8 +132,22 @@ public class Cliente implements Serializable {
 	 * @param jugada Decision tomada por el usuario.
 	 */
 	public void enviarJugada(Jugada jugada) {
-		this.ultimaJugada = jugada;
-		ServiciosComunicacion.enviarTCP(socket, jugada);
+		ultimaJugada = jugada;
+		
+		boolean terminado = false;
+		while (!terminado) {
+			try {
+				ServiciosComunicacion.enviarTCP(socket, this);
+				ServiciosComunicacion.enviarTCP(socket, jugada);
+				terminado = true;
+			} catch (IOException ex) {
+				Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
+
+				// Iniciar conexión con el servidor
+				socket = ServiciosComunicacion.abrirSocketConServidor(direccionServidor);
+				terminado = false;
+			}
+		}
 	}
 
 	/**
@@ -140,13 +156,22 @@ public class Cliente implements Serializable {
 	 * @return 
 	 */
 	public List<Jugador> recibirResultados() {
-		
-		this.jugador = (Jugador)ServiciosComunicacion.recibirTCP(socket);
-		
-		List<Jugador> resultadoJugadores = (List<Jugador>)ServiciosComunicacion.recibirTCP(socket);
-		resultadoJugadores.remove(this.jugador);
-		
-		return resultadoJugadores;
+		boolean terminado = false;
+		while (!terminado) {
+			try {
+				this.jugador = (Jugador)ServiciosComunicacion.recibirTCP(socket);
+				List<Jugador> resultadoJugadores = (List<Jugador>)ServiciosComunicacion.recibirTCP(socket);
+				resultadoJugadores.remove(this.jugador);
+				return resultadoJugadores;
+			} catch (IOException ex) {
+				Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
+
+				// Iniciar conexión con el servidor
+				socket = ServiciosComunicacion.abrirSocketConServidor(direccionServidor);
+				terminado = false;
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -155,24 +180,19 @@ public class Cliente implements Serializable {
 	 *
 	 * @param res Decisión del jugador.
 	 */
-	public void responderConfirmacion(boolean res) {
-            if (res) {
-                // Responder al servidor
-                ServiciosComunicacion.enviarTCP(socket, this);
-
-                // Recibir jugadores
-                List<Jugador> jugadores = (List<Jugador>) ServiciosComunicacion.recibirTCP(socket);
-                System.out.println("jugadores: " + jugadores);
-                // Enviar jugada
-
-            }
+	public void responderConfirmacion(boolean res) throws IOException {
+		if (res) {
+			// Responder al servidor
+			ServiciosComunicacion.enviarTCP(socket, this);
+		} else {
+			cerrarConexion();
+		}
 	}
     /**
 	 * Metodo que cierra conexion para que un cliente pueda reiniciarse.
 	 */    
 	public void cerrarConexion(){
-		if(socket != null)
-		{
+		if(socket != null) {
 			try {    
 				socket.close();
 			} catch (IOException ex) {
@@ -201,8 +221,8 @@ public class Cliente implements Serializable {
 		return ultimaRonda;
 	}
 
-	public InetAddress getDireccion() {
-		return direccion;
+	public InetAddress getDireccionServidor() {
+		return direccionServidor;
 	}
 
 	public Socket getSocket() {
